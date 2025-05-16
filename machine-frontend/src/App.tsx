@@ -6,6 +6,8 @@ import SevenSegmentDisplay from './components/SevenSegmentDisplay';
 import LedFillLevelStrip from './components/LedFillLevelStrip';
 import CapacityMeter from './components/CapacityMeter';
 import Plotter from './components/Plotter';
+import GeneratorDisplay from './components/GeneratorDisplay';
+import BatteryDisplay from './components/BatteryDisplay';
 
 interface MachineVariables {
   "generator1.value": number;
@@ -134,6 +136,19 @@ function App() {
                     onToggle={() => updateBackendVariable(activeKey, !machineState[activeKey])}
                   />
                 </div>
+                <div className="flex items-center justify-between mt-2">
+                  <GeneratorDisplay 
+                    isActive={machineState[activeKey] as boolean}
+                    width={80}
+                    height={80}
+                  />
+                  <GaugeDisplay
+                    label="Temp."
+                    value={machineState[tempKey] as number}
+                    minValue={0} maxValue={150} units="°C"
+                    width={100} height={65}
+                  />
+                </div>
                 <SliderControl
                   label="Power Output"
                   value={machineState[valueKey] as number}
@@ -141,12 +156,6 @@ function App() {
                   onChange={(val) => updateBackendVariable(valueKey, val)}
                 />
               </div>
-              <GaugeDisplay
-                label="Temp."
-                value={machineState[tempKey] as number}
-                minValue={0} maxValue={150} units="°C"
-                width={100} height={65}
-              />
             </ComponentCard>
           );
         })}
@@ -167,12 +176,19 @@ function App() {
                     onToggle={() => updateBackendVariable(activeKey, !machineState[activeKey])}
                   />
                 </div>
-                <CapacityMeter
-                  label="Charge Level"
-                  value={Number(machineState[valueKey])}
-                  maxValue={Number(machineState[capacityKey])}
-                  width={80} height={100}
-                />
+                <div className="flex items-center justify-between mt-2">
+                  <BatteryDisplay 
+                    isActive={machineState[activeKey] as boolean}
+                    width={80}
+                    height={80}
+                  />
+                  <CapacityMeter
+                    label="Charge Level"
+                    value={Number(machineState[valueKey])}
+                    maxValue={Number(machineState[capacityKey])}
+                    width={80} height={100}
+                  />
+                </div>
               </div>
             </ComponentCard>
           );
