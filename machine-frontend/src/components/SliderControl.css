@@ -1,86 +1,293 @@
-.slider-control-wrapper {
+.slider-control {
   background-color: #333;
+  border: 2px solid #555;
   border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-  border: 1px solid #444;
-  margin-bottom: 16px;
+  padding: 20px;
+  color: #ddd;
+  font-family: 'Courier New', monospace;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), inset 0 0 5px rgba(0, 0, 0, 0.5);
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.slider-header {
+.slider-control::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.1),
+    rgba(0, 0, 0, 0.1) 10px,
+    rgba(0, 0, 0, 0.2) 10px,
+    rgba(0, 0, 0, 0.2) 20px
+  );
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.slider-title {
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+  font-weight: bold;
+  border-bottom: 1px solid #555;
+  padding-bottom: 10px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.slider-container {
+  position: relative;
+  width: 100%;
+  padding: 20px 0;
+  z-index: 2;
+}
+
+.slider-track {
+  position: relative;
+  height: 20px;
+  background-color: #222;
+  border-radius: 10px;
+  border: 1px solid #555;
+  margin: 20px 0;
+  overflow: hidden;
+}
+
+.slider-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(to right, #4caf50, #ff9800);
+  border-radius: 10px 0 0 10px;
+  transition: width 0.2s ease;
+}
+
+.slider-handle {
+  position: absolute;
+  top: 50%;
+  width: 30px;
+  height: 40px;
+  background-color: #ddd;
+  border: 2px solid #888;
+  border-radius: 5px;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 3;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.2s ease;
+}
+
+.slider-handle:hover {
+  background-color: #fff;
+}
+
+.slider-handle:active {
+  background-color: #ccc;
+}
+
+.slider-handle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 20px;
+  background-color: #666;
+  transform: translate(-50%, -50%);
+}
+
+.slider-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 2px;
+  background-color: #666;
+  transform: translate(-50%, -50%);
+}
+
+.slider-ticks {
+  position: relative;
+  width: 100%;
+  height: 20px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
+  padding: 0 15px;
+  margin-top: 5px;
+}
+
+.slider-tick {
+  position: relative;
+  width: 2px;
+  height: 10px;
+  background-color: #888;
+}
+
+.slider-tick.major {
+  height: 15px;
+  width: 3px;
+  background-color: #aaa;
+}
+
+.slider-labels {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+  margin-top: 5px;
 }
 
 .slider-label {
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.slider-value-display {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 15px 0;
+  position: relative;
+  z-index: 2;
+  background-color: #222;
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: 1px solid #555;
+  min-width: 100px;
+}
+
+.slider-buttons {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 15px;
+  position: relative;
+  z-index: 2;
+}
+
+.slider-button {
+  background-color: #444;
   color: #ddd;
-  font-size: 14px;
-  font-weight: bold;
+  border: 1px solid #666;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  transition: all 0.3s;
 }
 
-.slider-value {
-  color: #4CAF50;
-  font-weight: bold;
-}
-
-.slider-component {
-  margin: 8px 0;
-}
-
-.slider-range {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 4px;
-  font-size: 12px;
-  color: #999;
-}
-
-.slider-indicators {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-}
-
-.indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.indicator.active {
-  background-color: #4CAF50;
-}
-
-.indicator.inactive {
+.slider-button:hover {
   background-color: #555;
 }
 
-/* Override Ant Design slider styles for a more industrial look */
-.ant-slider-rail {
-  background-color: #555 !important;
-  height: 8px !important;
+.slider-button:active {
+  transform: scale(0.95);
 }
 
-.ant-slider-track {
-  background-color: #4CAF50 !important;
-  height: 8px !important;
+.slider-button.increment {
+  background-color: #1b5e20;
 }
 
-.ant-slider-handle {
-  border: solid 2px #4CAF50 !important;
-  background-color: #333 !important;
-  width: 16px !important;
-  height: 16px !important;
-  margin-top: -4px !important;
+.slider-button.decrement {
+  background-color: #b71c1c;
 }
 
-.ant-slider-handle:focus {
-  box-shadow: 0 0 0 5px rgba(76, 175, 80, 0.2) !important;
+.slider-button:disabled {
+  background-color: #333;
+  color: #666;
+  cursor: not-allowed;
 }
 
-.min-value, .max-value {
-  font-size: 10px;
-  color: #aaa;
+.slider-led {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #4caf50;
+  box-shadow: 0 0 5px #4caf50;
+  z-index: 5;
+}
+
+/* Screws in corners to give industrial look */
+.slider-screw-top-right,
+.slider-screw-bottom-left,
+.slider-screw-bottom-right {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #222;
+  border-radius: 50%;
+  border: 2px solid #666;
+  z-index: 3;
+}
+
+.slider-screw-top-right {
+  top: 5px;
+  right: 5px;
+}
+
+.slider-screw-bottom-left {
+  bottom: 5px;
+  left: 5px;
+}
+
+.slider-screw-bottom-right {
+  bottom: 5px;
+  right: 5px;
+}
+
+/* Add diagonal line across screws */
+.slider-screw-top-right::before,
+.slider-screw-bottom-left::before,
+.slider-screw-bottom-right::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 2px;
+  background-color: #666;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.slider-screw-top-right::after,
+.slider-screw-bottom-left::after,
+.slider-screw-bottom-right::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 2px;
+  background-color: #666;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.slider-description {
+  font-size: 0.7rem;
+  color: #888;
+  margin-top: 10px;
+  position: relative;
+  z-index: 2;
 }

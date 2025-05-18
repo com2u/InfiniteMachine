@@ -1,175 +1,527 @@
-import React, { useState, useEffect } from 'react';
-import ComponentRenderer from './ComponentRenderer';
-import type { Component, MachineVariables } from '../types/MachineTypes';
+import React, { useEffect, useState } from 'react';
+import BatteryDisplay from './BatteryDisplay';
+import GeneratorDisplay from './GeneratorDisplay';
+import GaugeDisplay from './GaugeDisplay';
+import SliderControl from './SliderControl';
+import './ControlPanel.css';
 
 interface ControlPanelProps {
-  components: Component[];
-  machineState: MachineVariables;
-  updateVariable: (key: string, value: number | boolean) => void;
+  systemData: any | null; // Add systemData prop to match App.tsx
 }
 
-const ControlPanel: React.FC<ControlPanelProps> = ({
-  components,
-  machineState,
-  updateVariable
-}) => {
-  // Group components by their category
-  const groupedComponents = components.reduce((acc, component) => {
-    const category = component.category || 'misc';
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(component);
-    return acc;
-  }, {} as Record<string, Component[]>);
+interface ComponentPosition {
+  id: string;
+  type: 'battery' | 'generator' | 'gauge' | 'slider';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  props: any;
+}
 
-  // Order of categories to display
-  const categoryOrder = ['generator', 'battery', 'distribution', 'consumer', 'misc'];
+interface Connection {
+  from: string;
+  to: string;
+  type: 'power' | 'control' | 'data';
+  status: 'active' | 'warning' | 'critical' | 'inactive';
+}
+
+const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
+  const [systemStatus, setSystemStatus] = useState('OPERATIONAL');
+  const [systemLoad, setSystemLoad] = useState(78);
+  const [powerOutput, setPowerOutput] = useState(1.2);
+  const [efficiency, setEfficiency] = useState(85);
   
-  // Sort categories
-  const sortedCategories = Object.keys(groupedComponents).sort(
-    (a, b) => categoryOrder.indexOf(a) - categoryOrder.indexOf(b)
-  );
+  // Define fixed positions for components with improved alignment
+  const components: ComponentPosition[] = [
+    // Row 1: Batteries
+    {
+      id: 'battery1',
+      type: 'battery',
+      x: 50,
+      y: 150,
+      width: 250,
+      height: 380,
+      props: {
+        isActive: true,
+        id: "1",
+        powerLevel: 87
+      }
+    },
+    {
+      id: 'battery2',
+      type: 'battery',
+      x: 350,
+      y: 150,
+      width: 250,
+      height: 380,
+      props: {
+        isActive: true,
+        id: "2",
+        powerLevel: 65
+      }
+    },
+    {
+      id: 'battery3',
+      type: 'battery',
+      x: 650,
+      y: 150,
+      width: 250,
+      height: 380,
+      props: {
+        isActive: false,
+        id: "3",
+        powerLevel: 30
+      }
+    },
+    
+    // Row 2: Generators
+    {
+      id: 'generator1',
+      type: 'generator',
+      x: 50,
+      y: 580,
+      width: 250,
+      height: 380,
+      props: {
+        isActive: true,
+        id: "1",
+        powerLevel: 75
+      }
+    },
+    {
+      id: 'generator2',
+      type: 'generator',
+      x: 350,
+      y: 580,
+      width: 250,
+      height: 380,
+      props: {
+        isActive: true,
+        id: "2",
+        powerLevel: 65
+      }
+    },
+    {
+      id: 'generator3',
+      type: 'generator',
+      x: 650,
+      y: 580,
+      width: 250,
+      height: 380,
+      props: {
+        isActive: false,
+        id: "3",
+        powerLevel: 0
+      }
+    },
+    
+    // Row 3: Gauges
+    {
+      id: 'pressure-gauge',
+      type: 'gauge',
+      x: 50,
+      y: 1010,
+      width: 250,
+      height: 300,
+      props: {
+        title: 'PRESSURE',
+        value: 75,
+        min: 0,
+        max: 100,
+        unit: 'BAR'
+      }
+    },
+    {
+      id: 'temperature-gauge',
+      type: 'gauge',
+      x: 350,
+      y: 1010,
+      width: 250,
+      height: 300,
+      props: {
+        title: 'TEMPERATURE',
+        value: 65,
+        min: 0,
+        max: 150,
+        unit: '°C'
+      }
+    },
+    {
+      id: 'flow-gauge',
+      type: 'gauge',
+      x: 650,
+      y: 1010,
+      width: 250,
+      height: 300,
+      props: {
+        title: 'FLOW RATE',
+        value: 42,
+        min: 0,
+        max: 100,
+        unit: 'L/s'
+      }
+    },
+    
+    // Row 4: Sliders
+    {
+      id: 'power-slider',
+      type: 'slider',
+      x: 50,
+      y: 1360,
+      width: 250,
+      height: 300,
+      props: {
+        title: 'POWER',
+        min: 0,
+        max: 100,
+        value: 65,
+        step: 5
+      }
+    },
+    {
+      id: 'flow-slider',
+      type: 'slider',
+      x: 350,
+      y: 1360,
+      width: 250,
+      height: 300,
+      props: {
+        title: 'FLOW RATE',
+        min: 0,
+        max: 100,
+        value: 50,
+        step: 5
+      }
+    },
+    {
+      id: 'pressure-slider',
+      type: 'slider',
+      x: 650,
+      y: 1360,
+      width: 250,
+      height: 300,
+      props: {
+        title: 'PRESSURE',
+        min: 0,
+        max: 100,
+        value: 70,
+        step: 5
+      }
+    }
+  ];
+  
+  // Define connections between components
+  const connections: Connection[] = [
+    // Battery to Generator connections
+    {
+      from: 'battery1',
+      to: 'generator1',
+      type: 'power',
+      status: 'active'
+    },
+    {
+      from: 'battery2',
+      to: 'generator2',
+      type: 'power',
+      status: 'active'
+    },
+    {
+      from: 'battery3',
+      to: 'generator3',
+      type: 'power',
+      status: 'inactive'
+    },
+    
+    // Generator to Gauge connections
+    {
+      from: 'generator1',
+      to: 'pressure-gauge',
+      type: 'data',
+      status: 'active'
+    },
+    {
+      from: 'generator2',
+      to: 'temperature-gauge',
+      type: 'data',
+      status: 'active'
+    },
+    {
+      from: 'generator3',
+      to: 'flow-gauge',
+      type: 'data',
+      status: 'inactive'
+    },
+    
+    // Slider to Generator connections
+    {
+      from: 'power-slider',
+      to: 'generator1',
+      type: 'control',
+      status: 'active'
+    },
+    {
+      from: 'flow-slider',
+      to: 'generator2',
+      type: 'control',
+      status: 'active'
+    },
+    {
+      from: 'pressure-slider',
+      to: 'generator3',
+      type: 'control',
+      status: 'inactive'
+    }
+  ];
+  
+  // Render connection lines between components
+  const renderConnections = () => {
+    return connections.map((connection, index) => {
+      const fromComponent = components.find(c => c.id === connection.from);
+      const toComponent = components.find(c => c.id === connection.to);
+      
+      if (!fromComponent || !toComponent) return null;
+      
+      // Calculate connection points
+      const fromX = fromComponent.x + fromComponent.width / 2;
+      const fromY = fromComponent.y + fromComponent.height / 2;
+      const toX = toComponent.x + toComponent.width / 2;
+      const toY = toComponent.y + toComponent.height / 2;
+      
+      // Determine if connection is horizontal or vertical
+      const isHorizontal = Math.abs(toX - fromX) > Math.abs(toY - fromY);
+      
+      if (isHorizontal) {
+        // Horizontal connection with vertical segments
+        const midX = (fromX + toX) / 2;
+        
+        return (
+          <React.Fragment key={`connection-${index}`}>
+            {/* Horizontal line from source */}
+            <div 
+              className={`connection-line horizontal ${connection.status}`}
+              style={{
+                left: fromX,
+                top: fromY,
+                width: Math.abs(midX - fromX),
+                transform: fromX > midX ? 'translateX(-100%)' : 'none'
+              }}
+            ></div>
+            
+            {/* Vertical line */}
+            <div 
+              className={`connection-line vertical ${connection.status}`}
+              style={{
+                left: midX,
+                top: Math.min(fromY, toY),
+                height: Math.abs(toY - fromY)
+              }}
+            ></div>
+            
+            {/* Horizontal line to target */}
+            <div 
+              className={`connection-line horizontal ${connection.status}`}
+              style={{
+                left: Math.min(midX, toX),
+                top: toY,
+                width: Math.abs(toX - midX)
+              }}
+            ></div>
+            
+            {/* Connection nodes */}
+            <div 
+              className={`connection-node ${connection.status}`}
+              style={{ left: fromX, top: fromY }}
+            ></div>
+            <div 
+              className={`connection-node ${connection.status}`}
+              style={{ left: toX, top: toY }}
+            ></div>
+          </React.Fragment>
+        );
+      } else {
+        // Vertical connection with horizontal segments
+        const midY = (fromY + toY) / 2;
+        
+        return (
+          <React.Fragment key={`connection-${index}`}>
+            {/* Vertical line from source */}
+            <div 
+              className={`connection-line vertical ${connection.status}`}
+              style={{
+                left: fromX,
+                top: Math.min(fromY, midY),
+                height: Math.abs(midY - fromY)
+              }}
+            ></div>
+            
+            {/* Horizontal line */}
+            <div 
+              className={`connection-line horizontal ${connection.status}`}
+              style={{
+                left: Math.min(fromX, toX),
+                top: midY,
+                width: Math.abs(toX - fromX)
+              }}
+            ></div>
+            
+            {/* Vertical line to target */}
+            <div 
+              className={`connection-line vertical ${connection.status}`}
+              style={{
+                left: toX,
+                top: Math.min(midY, toY),
+                height: Math.abs(toY - midY)
+              }}
+            ></div>
+            
+            {/* Connection nodes */}
+            <div 
+              className={`connection-node ${connection.status}`}
+              style={{ left: fromX, top: fromY }}
+            ></div>
+            <div 
+              className={`connection-node ${connection.status}`}
+              style={{ left: toX, top: toY }}
+            ></div>
+          </React.Fragment>
+        );
+      }
+    });
+  };
+  
+  // Render components based on their type and position
+  const renderComponent = (component: ComponentPosition) => {
+    const { id, type, x, y, width, height, props } = component;
+    
+    const style = {
+      left: `${x}px`,
+      top: `${y}px`,
+      width: `${width}px`,
+      height: `${height}px`
+    };
+    
+    switch (type) {
+      case 'battery':
+        return (
+          <div key={id} className="fixed-component" style={style}>
+            <BatteryDisplay {...props} width={width} height={height} />
+          </div>
+        );
+      case 'generator':
+        return (
+          <div key={id} className="fixed-component" style={style}>
+            <GeneratorDisplay {...props} width={width} height={height} />
+          </div>
+        );
+      case 'gauge':
+        return (
+          <div key={id} className="fixed-component" style={style}>
+            <GaugeDisplay {...props} width={width} height={height} />
+          </div>
+        );
+      case 'slider':
+        return (
+          <div key={id} className="fixed-component" style={style}>
+            <SliderControl {...props} width={width} height={height} />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+  
+  // Update component values based on systemData if available
+  useEffect(() => {
+    if (systemData) {
+      // Here you would update component values based on systemData
+      // For now, we'll just use the simulated values
+    }
+  }, [systemData]);
+  
+  // Simulate changing system values
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Randomly fluctuate system values
+      setSystemLoad(prev => {
+        const newValue = prev + (Math.random() * 6 - 3);
+        return Math.max(50, Math.min(95, newValue));
+      });
+      
+      setPowerOutput(prev => {
+        const newValue = prev + (Math.random() * 0.2 - 0.1);
+        return Math.max(0.8, Math.min(1.5, newValue));
+      });
+      
+      setEfficiency(prev => {
+        const newValue = prev + (Math.random() * 4 - 2);
+        return Math.max(75, Math.min(95, newValue));
+      });
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Determine system status based on load
+  useEffect(() => {
+    if (systemLoad > 90) {
+      setSystemStatus('CRITICAL');
+    } else if (systemLoad > 80) {
+      setSystemStatus('WARNING');
+    } else {
+      setSystemStatus('OPERATIONAL');
+    }
+  }, [systemLoad]);
+
+  // Calculate the minimum height needed for all components
+  const minHeight = Math.max(...components.map(c => c.y + c.height)) + 50;
 
   return (
-    <div className="flex flex-col p-4 bg-gray-900 min-h-screen">
-      {/* Machine diagram */}
-      <div className="mb-6 p-4 bg-black border border-gray-700 rounded-md shadow-lg">
-        <h2 className="text-lg font-mono tracking-wider text-center text-gray-300 mb-4 border-b border-gray-700 pb-2">
-          SYSTEM DIAGRAM
-        </h2>
-        <div className="flex flex-wrap justify-center gap-4">
-          {/* Energy flow diagram */}
-          <div className="relative w-full h-48 bg-gray-900 border border-gray-800 rounded">
-            {/* Generator nodes */}
-            <div className="absolute left-10 top-1/2 transform -translate-y-1/2 flex flex-col gap-4">
-              {components.filter(c => c.category === 'generator').map((gen, i) => (
-                <div 
-                  key={gen.id} 
-                  className={`w-16 h-16 flex items-center justify-center rounded-full border-2 ${
-                    machineState[`${gen.id}.active`] ? 'border-green-500 bg-green-900/20' : 'border-red-500 bg-red-900/10'
-                  }`}
-                >
-                  <span className="text-xs font-mono">{gen.name}</span>
-                </div>
-              ))}
-            </div>
-            
-            {/* Battery nodes */}
-            <div className="absolute left-1/3 top-1/2 transform -translate-y-1/2 flex flex-col gap-4">
-              {components.filter(c => c.category === 'battery').map((bat, i) => (
-                <div 
-                  key={bat.id} 
-                  className={`w-16 h-16 flex items-center justify-center rounded-full border-2 ${
-                    machineState[`${bat.id}.active`] ? 'border-blue-500 bg-blue-900/20' : 'border-gray-500 bg-gray-900/10'
-                  }`}
-                >
-                  <span className="text-xs font-mono">{bat.name}</span>
-                </div>
-              ))}
-            </div>
-            
-            {/* Distribution node */}
-            <div className="absolute left-2/3 top-1/2 transform -translate-y-1/2">
-              {components.filter(c => c.category === 'distribution').map((dist, i) => (
-                <div 
-                  key={dist.id} 
-                  className={`w-16 h-16 flex items-center justify-center rounded-full border-2 ${
-                    machineState[`${dist.id}.active`] ? 'border-purple-500 bg-purple-900/20' : 'border-gray-500 bg-gray-900/10'
-                  }`}
-                >
-                  <span className="text-xs font-mono">{dist.name}</span>
-                </div>
-              ))}
-            </div>
-            
-            {/* Consumer nodes */}
-            <div className="absolute right-10 top-1/2 transform -translate-y-1/2 flex flex-col gap-4">
-              {components.filter(c => c.category === 'consumer').map((cons, i) => (
-                <div 
-                  key={cons.id} 
-                  className={`w-16 h-16 flex items-center justify-center rounded-full border-2 ${
-                    machineState[`${cons.id}.active`] ? 'border-yellow-500 bg-yellow-900/20' : 'border-gray-500 bg-gray-900/10'
-                  }`}
-                >
-                  <span className="text-xs font-mono">{cons.name}</span>
-                </div>
-              ))}
-            </div>
-            
-            {/* Connection lines */}
-            <svg className="absolute inset-0 w-full h-full" style={{ zIndex: -1 }}>
-              {/* Generator to Battery connections */}
-              {components.filter(c => c.category === 'generator').map((gen, i) => 
-                components.filter(c => c.category === 'battery').map((bat, j) => (
-                  <line 
-                    key={`${gen.id}-${bat.id}`}
-                    x1="90" 
-                    y1={24 + i * 80} 
-                    x2="calc(33.33% - 40px)" 
-                    y2={24 + j * 80}
-                    stroke={machineState[`${gen.id}.active`] ? "#22c55e" : "#6b7280"}
-                    strokeWidth="2"
-                    strokeDasharray={machineState[`${gen.id}.active`] ? "0" : "4"}
-                  />
-                ))
-              )}
-              
-              {/* Battery to Distribution connections */}
-              {components.filter(c => c.category === 'battery').map((bat, i) => 
-                components.filter(c => c.category === 'distribution').map((dist, j) => (
-                  <line 
-                    key={`${bat.id}-${dist.id}`}
-                    x1="calc(33.33% + 40px)" 
-                    y1={24 + i * 80} 
-                    x2="calc(66.66% - 40px)" 
-                    y2="74"
-                    stroke={machineState[`${bat.id}.active`] ? "#3b82f6" : "#6b7280"}
-                    strokeWidth="2"
-                    strokeDasharray={machineState[`${bat.id}.active`] ? "0" : "4"}
-                  />
-                ))
-              )}
-              
-              {/* Distribution to Consumer connections */}
-              {components.filter(c => c.category === 'distribution').map((dist, i) => 
-                components.filter(c => c.category === 'consumer').map((cons, j) => (
-                  <line 
-                    key={`${dist.id}-${cons.id}`}
-                    x1="calc(66.66% + 40px)" 
-                    y1="74" 
-                    x2="calc(100% - 50px)" 
-                    y2={24 + j * 80}
-                    stroke={machineState[`${dist.id}.active`] ? "#a855f7" : "#6b7280"}
-                    strokeWidth="2"
-                    strokeDasharray={machineState[`${dist.id}.active`] ? "0" : "4"}
-                  />
-                ))
-              )}
-            </svg>
-          </div>
+    <div className="control-panel" style={{ minHeight: `${minHeight}px` }}>
+      <div className="panel-screw-top-left"></div>
+      <div className="panel-screw-top-right"></div>
+      <div className="panel-screw-bottom-left"></div>
+      <div className="panel-screw-bottom-right"></div>
+      
+      <h1 className="control-panel-title">INFINITE MACHINE CONTROL SYSTEM</h1>
+      
+      {/* System status indicators */}
+      <div className="status-indicator">
+        <div className="indicator">
+          <div className={`indicator-led ${systemStatus.toLowerCase()}`}></div>
+          <div className="indicator-label">System</div>
+        </div>
+        <div className="indicator">
+          <div className="indicator-led active"></div>
+          <div className="indicator-label">Power</div>
+        </div>
+        <div className="indicator">
+          <div className="indicator-led active"></div>
+          <div className="indicator-label">Network</div>
         </div>
       </div>
       
-      {/* Component sections by category */}
-      {sortedCategories.map(category => (
-        <div key={category} className="mb-6">
-          <h2 className="text-lg font-mono tracking-wider text-gray-300 mb-3 border-b border-gray-700 pb-1">
-            {category.toUpperCase()} SYSTEMS
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {groupedComponents[category].map(component => (
-              <div key={component.id} className="bg-gray-800 border border-gray-700 rounded-md shadow-lg overflow-hidden">
-                <ComponentRenderer
-                  component={component}
-                  machineState={machineState}
-                  updateVariable={updateVariable}
-                />
-              </div>
-            ))}
-          </div>
+      {/* System metrics */}
+      <div className="system-status">
+        <div>
+          <div className="system-status-label">System Load</div>
+          <div className={`system-status-value ${systemStatus.toLowerCase()}`}>{Math.round(systemLoad)}%</div>
         </div>
-      ))}
+        <div>
+          <div className="system-status-label">Power Output</div>
+          <div className="system-status-value">{powerOutput.toFixed(1)} kW</div>
+        </div>
+        <div>
+          <div className="system-status-label">Efficiency</div>
+          <div className="system-status-value">{Math.round(efficiency)}%</div>
+        </div>
+      </div>
+      
+      {/* Render all components */}
+      {components.map(renderComponent)}
+      
+      {/* Render connections between components */}
+      {renderConnections()}
     </div>
   );
 };

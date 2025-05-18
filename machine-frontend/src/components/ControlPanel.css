@@ -1,17 +1,317 @@
 .control-panel {
-  background-color: #333;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-  border: 1px solid #444;
-  max-width: 300px;
+  background-color: #222;
+  border: 4px solid #444;
+  border-radius: 10px;
+  padding: 20px;
+  color: #ddd;
+  font-family: 'Courier New', monospace;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.7), inset 0 0 10px rgba(0, 0, 0, 0.5);
+  position: relative;
+  width: 100%;
+  min-height: 800px;
   margin: 0 auto;
+  overflow: auto; /* Make the panel scrollable */
 }
 
-.control-panel h3 {
-  color: #ddd;
+.control-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.1),
+    rgba(0, 0, 0, 0.1) 10px,
+    rgba(0, 0, 0, 0.2) 10px,
+    rgba(0, 0, 0, 0.2) 20px
+  );
+  pointer-events: none;
+  z-index: 1;
+  background-attachment: fixed; /* Keep the pattern fixed while scrolling */
+}
+
+.control-panel-title {
+  font-size: 1.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
   text-align: center;
-  margin-bottom: 16px;
-  border-bottom: 1px solid #555;
-  padding-bottom: 8px;
+  margin: 10px 0 30px;
+  color: #ddd;
+  text-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
+  position: relative;
+  z-index: 2;
+}
+
+/* Screws in corners to give industrial look */
+.panel-screw-top-left,
+.panel-screw-top-right,
+.panel-screw-bottom-left,
+.panel-screw-bottom-right {
+  position: fixed; /* Fixed position to keep screws visible while scrolling */
+  width: 20px;
+  height: 20px;
+  background-color: #333;
+  border-radius: 50%;
+  border: 3px solid #666;
+  z-index: 10;
+}
+
+.panel-screw-top-left {
+  top: 10px;
+  left: 10px;
+}
+
+.panel-screw-top-right {
+  top: 10px;
+  right: 10px;
+}
+
+.panel-screw-bottom-left {
+  bottom: 10px;
+  left: 10px;
+}
+
+.panel-screw-bottom-right {
+  bottom: 10px;
+  right: 10px;
+}
+
+/* Add diagonal line across screws */
+.panel-screw-top-left::before,
+.panel-screw-top-right::before,
+.panel-screw-bottom-left::before,
+.panel-screw-bottom-right::before {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 3px;
+  background-color: #555;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.panel-screw-top-left::after,
+.panel-screw-top-right::after,
+.panel-screw-bottom-left::after,
+.panel-screw-bottom-right::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 3px;
+  background-color: #555;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* Status indicators */
+.status-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #333;
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: 1px solid #555;
+}
+
+.indicator-led {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  margin-bottom: 5px;
+  border: 1px solid #666;
+}
+
+.indicator-led.operational {
+  background-color: #4caf50;
+  box-shadow: 0 0 10px #4caf50;
+}
+
+.indicator-led.warning {
+  background-color: #ff9800;
+  box-shadow: 0 0 10px #ff9800;
+  animation: blink 1s infinite;
+}
+
+.indicator-led.critical {
+  background-color: #f44336;
+  box-shadow: 0 0 10px #f44336;
+  animation: blink 0.5s infinite;
+}
+
+.indicator-led.active {
+  background-color: #4caf50;
+  box-shadow: 0 0 10px #4caf50;
+}
+
+.indicator-led.inactive {
+  background-color: #666;
+  box-shadow: none;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.indicator-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #aaa;
+}
+
+/* System status display */
+.system-status {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 2;
+}
+
+.system-status > div {
+  background-color: #333;
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: 1px solid #555;
+  min-width: 150px;
+  text-align: center;
+}
+
+.system-status-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-bottom: 5px;
+}
+
+.system-status-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #4caf50;
+}
+
+.system-status-value.warning {
+  color: #ff9800;
+}
+
+.system-status-value.critical {
+  color: #f44336;
+  animation: blink 1s infinite;
+}
+
+/* Fixed component positioning */
+.fixed-component {
+  position: absolute;
+  z-index: 3;
+  transition: transform 0.3s ease; /* Smooth transition for any transformations */
+}
+
+/* Add a subtle hover effect to components */
+.fixed-component:hover {
+  transform: scale(1.02);
+  z-index: 4; /* Bring hovered component to front */
+}
+
+/* Connection lines */
+.connection-line {
+  position: absolute;
+  background-color: #666;
+  z-index: 2;
+}
+
+.connection-line.horizontal {
+  height: 2px;
+}
+
+.connection-line.vertical {
+  width: 2px;
+}
+
+.connection-line.active {
+  background-color: #4caf50;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+.connection-line.warning {
+  background-color: #ff9800;
+  box-shadow: 0 0 5px rgba(255, 152, 0, 0.5);
+}
+
+.connection-line.critical {
+  background-color: #f44336;
+  box-shadow: 0 0 5px rgba(244, 67, 54, 0.5);
+}
+
+.connection-line.inactive {
+  background-color: #555;
+}
+
+.connection-node {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #888;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+
+.connection-node.active {
+  background-color: #4caf50;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.8);
+}
+
+.connection-node.warning {
+  background-color: #ff9800;
+  box-shadow: 0 0 5px rgba(255, 152, 0, 0.8);
+}
+
+.connection-node.critical {
+  background-color: #f44336;
+  box-shadow: 0 0 5px rgba(244, 67, 54, 0.8);
+}
+
+.connection-node.inactive {
+  background-color: #555;
+}
+
+/* Make the app content scrollable */
+.app-content {
+  overflow: auto;
+  max-height: calc(100vh - 120px); /* Adjust based on header/footer height */
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .fixed-component {
+    transform: scale(0.9);
+  }
+}
+
+@media (max-width: 992px) {
+  .fixed-component {
+    transform: scale(0.85);
+  }
 }
