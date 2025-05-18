@@ -1,51 +1,38 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import LedDisplay from './components/LedDisplay';
-import GaugeDisplay from './components/GaugeDisplay';
-import SliderControl from './components/SliderControl';
-import SevenSegmentDisplay from './components/SevenSegmentDisplay';
-import LedFillLevelStrip from './components/LedFillLevelStrip';
-import CapacityMeter from './components/CapacityMeter';
-import Plotter from './components/Plotter';
+import ControlPanel from './components/ControlPanel';
 import GeneratorDisplay from './components/GeneratorDisplay';
 import BatteryDisplay from './components/BatteryDisplay';
-
-interface MachineVariables {
-  "generator1.value": number;
-  "generator1.temp": number;
-  "generator1.active": boolean;
-  "generator2.value": number;
-  "generator2.temp": number;
-  "generator2.active": boolean;
-  "generator3.value": number;
-  "generator3.temp": number;
-  "generator3.active": boolean;
-  "akku1.capacity": number;
-  "akku1.value": number;
-  "akku1.active": boolean;
-  "akku2.capacity": number;
-  "akku2.value": number;
-  "akku2.active": boolean;
-  "akku3.capacity": number;
-  "akku3.value": number;
-  "akku3.active": boolean;
-  "aggregator.value": number;
-  "aggregator.active": boolean;
-  "producer.consumption": number;
-  "producer.output": number;
-  "producer.active": boolean;
-  "productCounter.value": number;
-  "room.temp": number;
-  [key: string]: number | boolean; // Index signature for dynamic access
-}
+import SliderControl from './components/SliderControl';
+import GaugeDisplay from './components/GaugeDisplay';
+import type { MachineVariables, MachineStructure, Component } from './types/MachineTypes';
+import './components/App.css';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
 function App() {
   const [machineState, setMachineState] = useState<MachineVariables | null>(null);
+  const [machineStructure, setMachineStructure] = useState<MachineStructure | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
+  // Fetch machine structure
+  const fetchStructure = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/structure`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: MachineStructure = await response.json();
+      setMachineStructure(data);
+      setError(null);
+    } catch (e) {
+      console.error("Failed to fetch machine structure:", e);
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }, []);
+
+  // Fetch machine state
+  const fetchState = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/status`);
       if (!response.ok) {
@@ -62,11 +49,19 @@ function App() {
     }
   }, []);
 
+  // Initial fetch of structure and state
   useEffect(() => {
-    fetchData(); // Initial fetch
-    const intervalId = setInterval(fetchData, 750); 
-    return () => clearInterval(intervalId); 
-  }, [fetchData]);
+    const fetchInitialData = async () => {
+      await fetchStructure();
+      await fetchState();
+    };
+    
+    fetchInitialData();
+    
+    // Set up interval for state updates
+    const intervalId = setInterval(fetchState, 750);
+    return () => clearInterval(intervalId);
+  }, [fetchStructure, fetchState]);
 
   const updateBackendVariable = async (key: string, value: number | boolean) => {
     try {
@@ -85,205 +80,199 @@ function App() {
       if (result.new_values) { 
         setMachineState(result.new_values);
       } else { 
-        fetchData();
+        fetchState();
       }
     } catch (e) {
       console.error("Failed to update variable:", key, e);
       setError(e instanceof Error ? e.message : String(e));
-      fetchData(); 
+      fetchState(); 
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !machineStructure) {
     return <div className="min-h-screen bg-gray-100 flex items-center justify-center text-gray-800 text-2xl">Loading Machine Data...</div>;
   }
 
   if (error || !machineState) {
     return <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center text-red-600 text-2xl">
       <p>Error loading machine data: {error || "Machine state is null."}</p>
-      <button onClick={fetchData} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Retry</button>
+      <button onClick={fetchState} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Retry</button>
     </div>;
   }
-  
-  const ComponentCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
-    <div className={`bg-gray-800 p-2 rounded-md shadow-lg w-full flex flex-col space-y-1.5 border border-gray-700 ${className}`}>
-      <h2 className="text-sm font-medium text-blue-300 mb-1 border-b border-gray-600 pb-0.5">{title}</h2>
-      {children}
-    </div>
-  );
+
+  // Function to render components at fixed positions
+  const renderComponentsWithFixedLayout = () => {
+    if (!machineStructure) return null;
+    
+    // Group components by category for easier access
+    const componentsByCategory = machineStructure.components.reduce((acc, component) => {
+      const category = component.category || 'misc';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(component);
+      return acc;
+    }, {} as Record<string, Component[]>);
+    
+    return (
+      <div className="app-container">
+        {/* Header */}
+        <div className="fixed top-0 left-0 right-0 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 py-2 px-4 border-b border-gray-700 shadow-md z-10">
+          <h1 className="text-xl font-mono tracking-wider text-center text-gray-300">INFINITE MACHINE CONTROL SYSTEM</h1>
+          <div className="flex justify-center mt-1 space-x-4">
+            <div className="text-xs bg-gray-800 px-2 py-1 rounded border border-gray-700">
+              <span className="text-gray-400">STATUS:</span> 
+              <span className="text-green-400 ml-1">OPERATIONAL</span>
+            </div>
+            <div className="text-xs bg-gray-800 px-2 py-1 rounded border border-gray-700">
+              <span className="text-gray-400">SYSTEM:</span> 
+              <span className="text-blue-400 ml-1">v2.5.3</span>
+            </div>
+            <div className="text-xs bg-gray-800 px-2 py-1 rounded border border-gray-700">
+              <span className="text-gray-400">UPTIME:</span> 
+              <span className="text-yellow-400 ml-1">14:23:56</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Fixed position components */}
+        <div className="control-panel-container">
+          <div className="control-panel">
+            <h3 className="text-xl font-mono mb-2">CONTROL PANEL</h3>
+            {componentsByCategory['consumer']?.map((component) => (
+              <div key={component.id} className="mb-4">
+                <SliderControl
+                  label={component.properties[0]?.label || component.name}
+                  value={machineState[`${component.id}.${component.properties[0]?.key}`] as number || 0}
+                  min={component.properties[0]?.min || 0}
+                  max={component.properties[0]?.max || 100}
+                  step={component.properties[0]?.step || 1}
+                  onChange={(newValue) => updateBackendVariable(`${component.id}.${component.properties[0]?.key}`, newValue)}
+                  units={component.properties[0]?.units}
+                  disabled={!component.properties[0]?.controllable}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="generator-display-container">
+          <div className="generator-display">
+            <h3 className="text-xl font-mono mb-2">GENERATOR</h3>
+            {componentsByCategory['generator']?.map((component) => (
+              <div key={component.id} className="mb-4">
+                <GeneratorDisplay
+                  isActive={!!machineState[`${component.id}.active`]}
+                  width={100}
+                  height={100}
+                />
+                <div className="text-center mt-2">
+                  <span className="text-gray-300">{component.name}</span>
+                  <div className="text-sm text-gray-400">{component.description}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="battery-display-container">
+          <div className="battery-display">
+            <h3 className="text-xl font-mono mb-2">BATTERY</h3>
+            {componentsByCategory['battery']?.map((component) => (
+              <div key={component.id} className="mb-4">
+                <BatteryDisplay
+                  isActive={!!machineState[`${component.id}.active`]}
+                  width={100}
+                  height={100}
+                />
+                <div className="text-center mt-2">
+                  <span className="text-gray-300">{component.name}</span>
+                  <div className="text-sm text-gray-400">{component.description}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="slider-control-container">
+          <div className="slider-control">
+            <h3 className="text-xl font-mono mb-2">GAUGES</h3>
+            {componentsByCategory['distribution']?.map((component) => (
+              <div key={component.id} className="mb-4">
+                <GaugeDisplay
+                  label={component.properties[0]?.label || component.name}
+                  value={machineState[`${component.id}.${component.properties[0]?.key}`] as number || 0}
+                  minValue={component.properties[0]?.min || 0}
+                  maxValue={component.properties[0]?.max || 100}
+                  units={component.properties[0]?.units}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Connection lines */}
+        <svg className="absolute inset-0 w-full h-full" style={{ zIndex: -1 }}>
+          {/* Generator to Battery connection */}
+          <line 
+            x1="calc(100% - 150px)" 
+            y1="120px" 
+            x2="120px" 
+            y2="calc(100% - 150px)"
+            stroke="#6b7280"
+            strokeWidth="2"
+            strokeDasharray="4"
+          />
+          
+          {/* Battery to Control Panel connection */}
+          <line 
+            x1="120px" 
+            y1="calc(100% - 150px)" 
+            x2="120px" 
+            y2="120px"
+            stroke="#6b7280"
+            strokeWidth="2"
+            strokeDasharray="4"
+          />
+          
+          {/* Control Panel to Gauges connection */}
+          <line 
+            x1="120px" 
+            y1="120px" 
+            x2="calc(100% - 150px)" 
+            y2="calc(100% - 150px)"
+            stroke="#6b7280"
+            strokeWidth="2"
+            strokeDasharray="4"
+          />
+          
+          {/* Gauges to Generator connection */}
+          <line 
+            x1="calc(100% - 150px)" 
+            y1="calc(100% - 150px)" 
+            x2="calc(100% - 150px)" 
+            y2="120px"
+            stroke="#6b7280"
+            strokeWidth="2"
+            strokeDasharray="4"
+          />
+        </svg>
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-white p-2 text-gray-800 font-sans"> 
-      <header className="text-center mb-3">
-        <h1 className="text-xl font-semibold text-gray-700">MACHINE CONTROL PANEL</h1>
-      </header>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-        
-        {[1, 2, 3].map(id => {
-          const activeKey = `generator${id}.active`;
-          const valueKey = `generator${id}.value`;
-          const tempKey = `generator${id}.temp`;
-          return (
-            <ComponentCard key={`gen-${id}`} title={`GEN ${id}`}>
-              <div className="flex flex-col">
-                <div className="text-xs text-gray-100 mb-1 text-center">Power Generator Unit</div>
-                <div className="flex items-center space-x-2 text-xs text-gray-100">
-                  <span>Active:</span>
-                  <LedDisplay 
-                    size={16}
-                    isActive={machineState[activeKey] as boolean}
-                    onToggle={() => updateBackendVariable(activeKey, !machineState[activeKey])}
-                  />
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <GeneratorDisplay 
-                    isActive={machineState[activeKey] as boolean}
-                    width={80}
-                    height={80}
-                  />
-                  <GaugeDisplay
-                    label="Temp."
-                    value={machineState[tempKey] as number}
-                    minValue={0} maxValue={150} units="°C"
-                    width={100} height={65}
-                  />
-                </div>
-                <SliderControl
-                  label="Power Output"
-                  value={machineState[valueKey] as number}
-                  min={0} max={10} step={1}
-                  onChange={(val) => updateBackendVariable(valueKey, val)}
-                />
-              </div>
-            </ComponentCard>
-          );
-        })}
-
-        {[1, 2, 3].map(id => {
-          const activeKey = `akku${id}.active`;
-          const valueKey = `akku${id}.value`;
-          const capacityKey = `akku${id}.capacity`;
-          return (
-            <ComponentCard key={`akku-${id}`} title={`AKKU ${id}`}>
-              <div className="flex flex-col">
-                <div className="text-xs text-gray-100 mb-1 text-center">Energy Storage Unit</div>
-                <div className="flex items-center space-x-2 text-xs text-gray-100">
-                  <span>Active:</span>
-                  <LedDisplay 
-                    size={16}
-                    isActive={machineState[activeKey] as boolean}
-                    onToggle={() => updateBackendVariable(activeKey, !machineState[activeKey])}
-                  />
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <BatteryDisplay 
-                    isActive={machineState[activeKey] as boolean}
-                    width={80}
-                    height={80}
-                  />
-                  <CapacityMeter
-                    label="Charge Level"
-                    value={Number(machineState[valueKey])}
-                    maxValue={Number(machineState[capacityKey])}
-                    width={80} height={100}
-                  />
-                </div>
-              </div>
-            </ComponentCard>
-          );
-        })}
-
-        <ComponentCard title="AGGREGATOR">
-          <div className="flex flex-col">
-            <div className="text-xs text-gray-100 mb-1 text-center">Energy Distribution System</div>
-            <div className="flex items-center space-x-2 text-xs text-gray-100">
-              <span>Active:</span>
-              <LedDisplay 
-                size={16}
-                isActive={machineState["aggregator.active"] as boolean}
-                onToggle={() => updateBackendVariable("aggregator.active", !machineState["aggregator.active"])}
-              />
-            </div>
-            <div className="flex flex-col items-center mt-2">
-              <div className="text-xs text-gray-100 mb-1">Total Energy Available</div>
-              <div className="bg-gray-700 rounded-md px-3 py-2 text-center">
-                <span className="font-mono text-green-400 text-xl font-bold">
-                  {(machineState["aggregator.value"] as number).toFixed(0)}
-                </span>
-                <span className="text-xs text-gray-300 ml-1">units</span>
-              </div>
-              <div className="text-xs text-gray-400 mt-2">
-                Combined from all active AKKUs
-              </div>
-            </div>
-          </div>
-        </ComponentCard>
-
-        <ComponentCard title="PRODUCER">
-          <div className="flex flex-col">
-            <div className="text-xs text-gray-100 mb-1 text-center">Manufacturing System</div>
-            <div className="flex items-center space-x-2 text-xs text-gray-100">
-              <span>Active:</span>
-              <LedDisplay 
-                size={16}
-                isActive={machineState["producer.active"] as boolean}
-                onToggle={() => updateBackendVariable("producer.active", !machineState["producer.active"])}
-              />
-            </div>
-            <SliderControl
-              label="Energy Consumption"
-              value={machineState["producer.consumption"] as number}
-              min={1} max={10} step={1}
-              onChange={(val) => updateBackendVariable("producer.consumption", val)}
-            />
-            <div className="flex flex-col items-center mt-2">
-              <div className="text-xs text-gray-100 mb-1">Production Status</div>
-              <div className="flex items-center justify-center">
-                <div className="mr-2 text-xs text-gray-100">Output:</div>
-                <SevenSegmentDisplay value={machineState["producer.output"] as number} digits={1} charHeight={28} />
-              </div>
-              <div className="text-xs text-gray-400 mt-1">
-                {machineState["producer.output"] === 1 ? "Producing" : "Idle"}
-              </div>
-              <div className="text-xs text-gray-400 mt-2">
-                Requires {machineState["producer.consumption"]} energy units per cycle
-              </div>
-            </div>
-          </div>
-        </ComponentCard>
-        
-         <ComponentCard title="PRODUCTS" className="col-span-2">
-            <div className="flex flex-col items-center py-2">
-              <div className="text-xs text-gray-100 mb-2">Total Products Created</div>
-              <SevenSegmentDisplay value={machineState["productCounter.value"]} digits={5} charHeight={36}/>
-              <div className="mt-4 w-full">
-                <Plotter 
-                  value={machineState["producer.output"]} 
-                  label="Production Output Over Time"
-                  width={280}
-                  height={120}
-                />
-              </div>
-            </div>
-        </ComponentCard>
-
-        <ComponentCard title="ROOM TEMP">
-            <div className="flex flex-col items-center">
-              <div className="text-xs text-gray-100 mb-1">Facility Temperature</div>
-              <GaugeDisplay
-                label="Current"
-                value={machineState["room.temp"] as number}
-                minValue={0} maxValue={150} units="°C"
-                width={100} height={65}
-              />
-              <div className="text-xs text-gray-400 mt-1">
-                {machineState["room.temp"] < 50 ? "Normal" : 
-                 machineState["room.temp"] < 80 ? "Warning" : "Critical"}
-              </div>
-            </div>
-        </ComponentCard>
-      </div>
+    <div className="min-h-screen bg-black p-0 text-gray-200 font-mono">
+      {isLoading || !machineStructure ? (
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center text-gray-800 text-2xl">Loading Machine Data...</div>
+      ) : error || !machineState ? (
+        <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center text-red-600 text-2xl">
+          <p>Error loading machine data: {error || "Machine state is null."}</p>
+          <button onClick={fetchState} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Retry</button>
+        </div>
+      ) : (
+        renderComponentsWithFixedLayout()
+      )}
     </div>
   );
 }

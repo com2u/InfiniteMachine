@@ -1,4 +1,5 @@
 import React from 'react';
+import './GeneratorDisplay.css';
 
 interface GeneratorDisplayProps {
   isActive: boolean;
@@ -18,13 +19,21 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <img 
-        src={svgPath} 
-        alt={isActive ? "Active Generator" : "Inactive Generator"} 
-        width={width} 
-        height={height}
-        className="object-contain"
-      />
+      <div className="relative">
+        <img 
+          src={svgPath} 
+          alt={isActive ? "Active Generator" : "Inactive Generator"} 
+          width={width} 
+          height={height}
+          className="object-contain"
+        />
+        {isActive && (
+          <div className="absolute top-0 right-0 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+        )}
+      </div>
+      <div className="mt-2 text-center">
+        <div className="text-xs text-gray-400">STATUS: {isActive ? 'ONLINE' : 'OFFLINE'}</div>
+      </div>
     </div>
   );
 };

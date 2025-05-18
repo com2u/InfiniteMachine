@@ -3,9 +3,208 @@ import threading
 import random
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from typing import Dict, List, Any
 
 class MachineSimulator:
     def __init__(self):
+        # Define the machine structure
+        self.machine_structure = {
+            "components": [
+                {
+                    "id": "generator1",
+                    "type": "generator",
+                    "name": "GEN 1",
+                    "description": "Power Generator Unit",
+                    "category": "generator",
+                    "properties": [
+                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
+                        {"key": "value", "type": "slider", "label": "Power Output", "min": 0, "max": 10, "step": 1, "controllable": True},
+                        {"key": "temp", "type": "gauge", "label": "Temp.", "min": 0, "max": 150, "units": "°C", "controllable": False}
+                    ],
+                    "visualization": {
+                        "type": "generator",
+                        "width": 80,
+                        "height": 80
+                    }
+                },
+                {
+                    "id": "generator2",
+                    "type": "generator",
+                    "name": "GEN 2",
+                    "description": "Power Generator Unit",
+                    "category": "generator",
+                    "properties": [
+                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
+                        {"key": "value", "type": "slider", "label": "Power Output", "min": 0, "max": 10, "step": 1, "controllable": True},
+                        {"key": "temp", "type": "gauge", "label": "Temp.", "min": 0, "max": 150, "units": "°C", "controllable": False}
+                    ],
+                    "visualization": {
+                        "type": "generator",
+                        "width": 80,
+                        "height": 80
+                    }
+                },
+                {
+                    "id": "generator3",
+                    "type": "generator",
+                    "name": "GEN 3",
+                    "description": "Power Generator Unit",
+                    "category": "generator",
+                    "properties": [
+                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
+                        {"key": "value", "type": "slider", "label": "Power Output", "min": 0, "max": 10, "step": 1, "controllable": True},
+                        {"key": "temp", "type": "gauge", "label": "Temp.", "min": 0, "max": 150, "units": "°C", "controllable": False}
+                    ],
+                    "visualization": {
+                        "type": "generator",
+                        "width": 80,
+                        "height": 80
+                    }
+                },
+                {
+                    "id": "akku1",
+                    "type": "battery",
+                    "name": "AKKU 1",
+                    "description": "Energy Storage Unit",
+                    "category": "battery",
+                    "properties": [
+                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
+                        {"key": "value", "type": "capacity", "label": "Charge Level", "max_key": "capacity", "controllable": False},
+                        {"key": "capacity", "type": "number", "label": "Capacity", "controllable": False}
+                    ],
+                    "visualization": {
+                        "type": "battery",
+                        "width": 80,
+                        "height": 80
+                    }
+                },
+                {
+                    "id": "akku2",
+                    "type": "battery",
+                    "name": "AKKU 2",
+                    "description": "Energy Storage Unit",
+                    "category": "battery",
+                    "properties": [
+                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
+                        {"key": "value", "type": "capacity", "label": "Charge Level", "max_key": "capacity", "controllable": False},
+                        {"key": "capacity", "type": "number", "label": "Capacity", "controllable": False}
+                    ],
+                    "visualization": {
+                        "type": "battery",
+                        "width": 80,
+                        "height": 80
+                    }
+                },
+                {
+                    "id": "akku3",
+                    "type": "battery",
+                    "name": "AKKU 3",
+                    "description": "Energy Storage Unit",
+                    "category": "battery",
+                    "properties": [
+                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
+                        {"key": "value", "type": "capacity", "label": "Charge Level", "max_key": "capacity", "controllable": False},
+                        {"key": "capacity", "type": "number", "label": "Capacity", "controllable": False}
+                    ],
+                    "visualization": {
+                        "type": "battery",
+                        "width": 80,
+                        "height": 80
+                    }
+                },
+                {
+                    "id": "aggregator",
+                    "type": "aggregator",
+                    "name": "AGGREGATOR",
+                    "description": "Energy Distribution System",
+                    "category": "distribution",
+                    "properties": [
+                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
+                        {"key": "value", "type": "display", "label": "Total Energy Available", "units": "units", "controllable": False}
+                    ],
+                    "visualization": {
+                        "type": "text",
+                        "description": "Combined from all active AKKUs"
+                    }
+                },
+                {
+                    "id": "producer",
+                    "type": "producer",
+                    "name": "PRODUCER",
+                    "description": "Manufacturing System",
+                    "category": "consumer",
+                    "properties": [
+                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
+                        {"key": "consumption", "type": "slider", "label": "Energy Consumption", "min": 1, "max": 10, "step": 1, "controllable": True},
+                        {"key": "output", "type": "segment", "label": "Production Status", "digits": 1, "controllable": False}
+                    ],
+                    "visualization": {
+                        "type": "text",
+                        "description": "Requires energy units per cycle"
+                    }
+                },
+                {
+                    "id": "productCounter",
+                    "type": "counter",
+                    "name": "PRODUCTS",
+                    "description": "Total Products Created",
+                    "category": "misc",
+                    "properties": [
+                        {"key": "value", "type": "segment", "label": "Total Products", "digits": 5, "controllable": False}
+                    ],
+                    "visualization": {
+                        "type": "plotter",
+                        "source_key": "producer.output",
+                        "label": "Production Output Over Time",
+                        "width": 280,
+                        "height": 120
+                    },
+                    "layout": {
+                        "colspan": 2
+                    }
+                },
+                {
+                    "id": "room",
+                    "type": "environment",
+                    "name": "ROOM TEMP",
+                    "description": "Facility Temperature",
+                    "category": "misc",
+                    "properties": [
+                        {"key": "temp", "type": "gauge", "label": "Current", "min": 0, "max": 150, "units": "°C", "controllable": False}
+                    ],
+                    "visualization": {
+                        "type": "status",
+                        "thresholds": [
+                            {"max": 50, "label": "Normal"},
+                            {"max": 80, "label": "Warning"},
+                            {"label": "Critical"}
+                        ]
+                    }
+                }
+            ],
+            "layout": {
+                "grid": {
+                    "columns": {
+                        "sm": 3,
+                        "md": 4,
+                        "lg": 5,
+                        "xl": 6
+                    }
+                }
+            },
+            "connections": [
+                {"from": "generator1", "to": "akku1", "type": "power"},
+                {"from": "generator2", "to": "akku2", "type": "power"},
+                {"from": "generator3", "to": "akku3", "type": "power"},
+                {"from": "akku1", "to": "aggregator", "type": "power"},
+                {"from": "akku2", "to": "aggregator", "type": "power"},
+                {"from": "akku3", "to": "aggregator", "type": "power"},
+                {"from": "aggregator", "to": "producer", "type": "power"},
+                {"from": "producer", "to": "productCounter", "type": "data"}
+            ]
+        }
+        
+        # Initialize the machine state variables
         self.variables = {
             "generator1.value": 5,
             "generator1.temp": 20.1,
@@ -226,6 +425,11 @@ simulator = MachineSimulator()
 @app.route('/api/status', methods=['GET'])
 def get_status():
     return jsonify(simulator.status_dict())
+
+@app.route('/api/structure', methods=['GET'])
+def get_structure():
+    """Return the machine structure information for the frontend"""
+    return jsonify(simulator.machine_structure)
 
 @app.route('/api/update', methods=['POST'])
 def update_vars():

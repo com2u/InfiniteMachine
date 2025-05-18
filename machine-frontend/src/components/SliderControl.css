@@ -1,0 +1,86 @@
+.slider-control-wrapper {
+  background-color: #333;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  border: 1px solid #444;
+  margin-bottom: 16px;
+}
+
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.slider-label {
+  color: #ddd;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.slider-value {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.slider-component {
+  margin: 8px 0;
+}
+
+.slider-range {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+}
+
+.slider-indicators {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.indicator.active {
+  background-color: #4CAF50;
+}
+
+.indicator.inactive {
+  background-color: #555;
+}
+
+/* Override Ant Design slider styles for a more industrial look */
+.ant-slider-rail {
+  background-color: #555 !important;
+  height: 8px !important;
+}
+
+.ant-slider-track {
+  background-color: #4CAF50 !important;
+  height: 8px !important;
+}
+
+.ant-slider-handle {
+  border: solid 2px #4CAF50 !important;
+  background-color: #333 !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin-top: -4px !important;
+}
+
+.ant-slider-handle:focus {
+  box-shadow: 0 0 0 5px rgba(76, 175, 80, 0.2) !important;
+}
+
+.min-value, .max-value {
+  font-size: 10px;
+  color: #aaa;
+}

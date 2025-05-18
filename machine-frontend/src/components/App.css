@@ -1,0 +1,57 @@
+.app-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  gap: 20px;
+  padding: 80px 20px 20px;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Fixed position containers */
+.control-panel-container {
+  position: absolute;
+  top: 100px;
+  left: 50px;
+  width: 300px;
+}
+
+.generator-display-container {
+  position: absolute;
+  top: 100px;
+  right: 50px;
+  width: 300px;
+}
+
+.battery-display-container {
+  position: absolute;
+  bottom: 100px;
+  left: 50px;
+  width: 300px;
+}
+
+.slider-control-container {
+  position: absolute;
+  bottom: 100px;
+  right: 50px;
+  width: 300px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .control-panel-container,
+  .generator-display-container,
+  .battery-display-container,
+  .slider-control-container {
+    position: static;
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 300px;
+  }
+}

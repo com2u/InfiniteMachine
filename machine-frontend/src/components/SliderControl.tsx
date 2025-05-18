@@ -1,5 +1,6 @@
 import React from 'react';
 import { Slider } from 'antd';
+import './SliderControl.css';
 
 interface SliderControlProps {
   label: string;
@@ -9,6 +10,7 @@ interface SliderControlProps {
   step?: number;
   onChange: (newValue: number) => void;
   units?: string;
+  disabled?: boolean;
 }
 
 const SliderControl: React.FC<SliderControlProps> = ({
@@ -19,28 +21,42 @@ const SliderControl: React.FC<SliderControlProps> = ({
   step = 1,
   onChange,
   units = "",
+  disabled = false,
 }) => {
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(parseFloat(event.target.value));
-  };
-
   return (
-    <div className="p-1.5 bg-transparent w-full"> {/* Removed max-w-xs to let card control width */}
-      <label htmlFor={label} className="block text-xs font-medium text-gray-200 mb-0.5"> {/* Slightly brighter label text */}
-        {label}: <span className="font-bold text-blue-300">{value.toFixed(units === "°C" || units === "" ? 0 : 1)}{units}</span>
-      </label>
-  <Slider
-    min={min}
-    max={max}
-    step={step}
-    value={value}
-    onChange={onChange}
-    className="w-full h-2.5 bg-gray-500 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 slider-thumb" 
-  />
-      {/* Custom CSS might be needed for more advanced thumb styling, Tailwind's accent color is a good start */}
-      <div className="flex justify-between text-xs text-gray-300 mt-0.5">
-        <span>{min}{units}</span>
-        <span>{max}{units}</span>
+    <div className="slider-control-wrapper">
+      <div className="slider-header">
+        <label htmlFor={label} className="slider-label">
+          {label}: <span className="slider-value">{typeof value === 'number' ? value.toFixed(units === "°C" || units === "" ? 0 : 1) : value}{units}</span>
+        </label>
+      </div>
+      
+      <Slider
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        className="slider-component"
+      />
+      
+      <div className="slider-range">
+        <span className="min-value">{min}{units}</span>
+        <span className="max-value">{max}{units}</span>
+      </div>
+      
+      <div className="slider-indicators">
+        {Array.from({ length: 5 }).map((_, i) => {
+          const indicatorValue = min + (max - min) * (i / 4);
+          const isActive = value >= indicatorValue;
+          return (
+            <div 
+              key={i} 
+              className={`indicator ${isActive ? 'active' : 'inactive'}`}
+            />
+          );
+        })}
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import React from 'react';
+import './GaugeDisplay.css';
 
 interface GaugeDisplayProps {
   value: number;
@@ -19,7 +20,8 @@ const GaugeDisplay: React.FC<GaugeDisplayProps> = ({
   width = 150,
   height = 100,
 }) => {
-  const percentage = Math.max(0, Math.min(100, ((value - minValue) / (maxValue - minValue)) * 100));
+  const numericValue = typeof value === 'number' ? value : 0;
+  const percentage = Math.max(0, Math.min(100, ((numericValue - minValue) / (maxValue - minValue)) * 100));
   // Gauge goes from -90 degrees (left) to 90 degrees (right), so 180 degree span
   const rotation = (percentage / 100) * 180 - 90;
 
@@ -29,8 +31,8 @@ const GaugeDisplay: React.FC<GaugeDisplayProps> = ({
   
   // Determine arc color based on value for the background
   let activeArcColorClass = "stroke-green-500"; // Use stroke- classes
-  if (value > maxValue * 0.5) activeArcColorClass = "stroke-yellow-500";
-  if (value > maxValue * 0.8) activeArcColorClass = "stroke-red-500";
+  if (numericValue > maxValue * 0.5) activeArcColorClass = "stroke-yellow-500";
+  if (numericValue > maxValue * 0.8) activeArcColorClass = "stroke-red-500";
 
   const radius = width / 2 - 10; // Radius of the gauge arc
   const circumference = Math.PI * radius; // Circumference of the half-circle
@@ -56,9 +58,10 @@ const GaugeDisplay: React.FC<GaugeDisplayProps> = ({
   const hubFillColor = colorMap[needleColorClass.replace('stroke-', 'fill-')] || '#ffffff';
 
   return (
-    <div className="flex flex-col items-center p-1 bg-transparent" style={{ width: `${width}px` }}>
-      {label && <span className="text-xs text-gray-100 mb-0.5">{label}</span>}
-      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
+    <div className="gauge-display">
+      {label && <div className="gauge-label">{label}</div>}
+      <div className="gauge-container" style={{ width: `${width}px` }}>
+        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
         {/* Background Arc */}
         <path
           d={`M 10 ${height - 10} A ${radius} ${radius} 0 0 1 ${width - 10} ${height - 10}`}
@@ -95,10 +98,15 @@ const GaugeDisplay: React.FC<GaugeDisplayProps> = ({
         {/* Min/Max Labels */}
         <text x="8" y={height - 2} fontSize="7" fill="#cbd5e1" textAnchor="start">{minValue}</text> {/* Tailwind gray-300 */}
         <text x={width - 8} y={height - 2} fontSize="7" fill="#cbd5e1" textAnchor="end">{maxValue}</text> {/* Tailwind gray-300 */}
-      </svg>
-      <span className="text-sm font-semibold text-gray-100 mt-0">
-        {value.toFixed(1)} {units}
-      </span>
+        </svg>
+        <div className="gauge-value">
+          {typeof value === 'number' ? value.toFixed(1) : value}<span className="gauge-units">{units}</span>
+        </div>
+        <div className="gauge-min-max">
+          <span>{minValue}{units}</span>
+          <span>{maxValue}{units}</span>
+        </div>
+      </div>
     </div>
   );
 };
