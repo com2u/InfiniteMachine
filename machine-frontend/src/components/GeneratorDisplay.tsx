@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './GeneratorDisplay.css';
+import './MachineComponent.css';
 
 interface GeneratorDisplayProps {
   isActive: boolean;
@@ -7,6 +8,8 @@ interface GeneratorDisplayProps {
   powerLevel?: number;
   width?: number;
   height?: number;
+  onToggle?: () => void;
+  onPowerChange?: (value: number) => void;
 }
 
 const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
@@ -15,6 +18,8 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
   powerLevel = 65,
   width,
   height,
+  onToggle,
+  onPowerChange,
 }) => {
   const [rpm, setRpm] = useState(0);
   const [temperature, setTemperature] = useState(0);
@@ -80,15 +85,23 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
   };
 
   return (
-    <div className="generator-display" style={width && height ? { width, height } : undefined}>
-      <div className="generator-connection-left"></div>
-      <div className="generator-connection-right"></div>
-      <div className={`generator-led ${statusClass}`}></div>
-      <div className="generator-screw-top-right"></div>
-      <div className="generator-screw-bottom-left"></div>
-      <div className="generator-screw-bottom-right"></div>
+    <div 
+      className="machine-component generator-display" 
+      style={width && height ? { width, height } : undefined}
+    >
+      <div 
+        className={`component-led ${isActive ? 'active' : 'inactive'}`} 
+        onClick={onToggle}
+        style={{ cursor: onToggle ? 'pointer' : 'default' }}
+      ></div>
+      <div className="component-screw-top-left"></div>
+      <div className="component-screw-top-right"></div>
+      <div className="component-screw-bottom-left"></div>
+      <div className="component-screw-bottom-right"></div>
+      <div className="connection-point connection-point-left"></div>
+      <div className="connection-point connection-point-right"></div>
       
-      <h3 className="generator-title">GENERATOR</h3>
+      <h3 className="component-title">GENERATOR</h3>
       
       <div className="generator-icon-container">
         <div className="generator-icon">
@@ -106,7 +119,20 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
         </div>
       </div>
       
-      <div className="power-level-bar">
+      <div 
+        className="power-level-bar"
+        onClick={(e) => {
+          if (onPowerChange && isActive) {
+            const bar = e.currentTarget;
+            const rect = bar.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const percentage = (clickX / rect.width) * 100;
+            const newPowerLevel = Math.max(0, Math.min(100, Math.round(percentage)));
+            onPowerChange(newPowerLevel);
+          }
+        }}
+        style={{ cursor: onPowerChange && isActive ? 'pointer' : 'default' }}
+      >
         <div 
           className={`power-level-fill ${statusClass}`} 
           style={{ width: `${isActive ? powerLevel : 0}%` }}
@@ -116,7 +142,7 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
         </div>
       </div>
       
-      <div className="generator-status">
+      <div className="component-status">
         <div className="status-label">
           <span>STATUS:</span>
           <span className={`status-value ${statusClass}`}>{statusText}</span>
@@ -128,7 +154,7 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
         </div>
       </div>
       
-      <div className="generator-metrics">
+      <div className="component-metrics">
         <div className="metric">
           <div className="metric-label">RPM</div>
           <div className="metric-value">{rpm}</div>
@@ -143,7 +169,7 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
         </div>
       </div>
       
-      <div className="generator-description">
+      <div className="component-description">
         UNIT {id} - Power Generation System
       </div>
     </div>

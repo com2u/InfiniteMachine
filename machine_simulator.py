@@ -246,9 +246,17 @@ class MachineSimulator:
         for key, value in sorted(current_vars.items()):
             print(f"{key}: {value}")
         print("----------------------")
+        # Force flush to ensure output is displayed immediately
+        import sys
+        sys.stdout.flush()
 
     def update_variable(self, key, value):
         with self.lock:
+            # Special handling for system.debug
+            if key == "system.debug" and value:
+                self.print_status()
+                return True
+                
             if key in self.variables:
                 # Type conversion for values coming from frontend (usually strings)
                 current_type = type(self.variables[key])
@@ -262,6 +270,9 @@ class MachineSimulator:
                     else:
                         self.variables[key] = value # Fallback for other types
                     
+                    # Store the old value for logging
+                    old_value = self.variables[key]
+                    
                     # Apply constraints for specific variables
                     if key == "generator1.value" or key == "generator2.value" or key == "generator3.value":
                         self.variables[key] = max(0, min(10, self.variables[key]))
@@ -270,6 +281,14 @@ class MachineSimulator:
 
                 except ValueError:
                     print(f"Error: Could not convert value '{value}' for key '{key}' to {current_type}")
+                    return False
+                
+                # Log the update with correct old and new values
+                print(f"Updating {key} from {old_value} to {self.variables[key]}")
+                return True
+            else:
+                print(f"Adding new variable {key} with value {value}")
+                self.variables[key] = value
                 return True
             return False
 
@@ -436,6 +455,24 @@ def update_vars():
     data = request.get_json()
     if not data:
         return jsonify({"error": "Invalid JSON"}), 400
+    
+    # Special handling for system.debug
+    if 'system.debug' in data and data['system.debug']:
+        # Print all variables to console
+        print("--- Machine Status ---")
+        current_vars = simulator.status_dict()
+        for key, value in sorted(current_vars.items()):
+            print(f"{key}: {value}")
+        print("----------------------")
+        import sys
+        sys.stdout.flush()
+        
+        # Also return all variables in the response
+        return jsonify({
+            "message": "Debug information",
+            "debug": True,
+            "variables": simulator.status_dict()
+        }), 200
     
     updated_keys = []
     for key, value in data.items():

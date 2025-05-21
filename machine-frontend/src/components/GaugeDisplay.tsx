@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './GaugeDisplay.css';
+import './MachineComponent.css';
 
 interface GaugeDisplayProps {
   title?: string;
@@ -13,6 +14,8 @@ interface GaugeDisplayProps {
   units?: string; // Added for compatibility with ComponentRenderer
   width?: number;
   height?: number;
+  isActive?: boolean;
+  onToggle?: () => void;
 }
 
 const GaugeDisplay: React.FC<GaugeDisplayProps> = ({
@@ -27,6 +30,8 @@ const GaugeDisplay: React.FC<GaugeDisplayProps> = ({
   units,
   width,
   height,
+  isActive = true,
+  onToggle,
 }) => {
   // Use provided values or fallbacks
   const displayTitle = title || label || 'GAUGE';
@@ -59,14 +64,27 @@ const GaugeDisplay: React.FC<GaugeDisplayProps> = ({
     return angle;
   };
 
+  // Map gauge status to component status class
+  // If isActive is false, always use 'inactive', otherwise use the gauge status
+  const statusClass = !isActive ? 'inactive' : (gaugeStatus === 'normal' ? 'active' : gaugeStatus);
+
   return (
-    <div className="gauge-display" style={width && height ? { width, height } : undefined}>
-      <div className={`gauge-led ${gaugeStatus}`}></div>
-      <div className="screw-top-right"></div>
-      <div className="screw-bottom-left"></div>
-      <div className="screw-bottom-right"></div>
+    <div 
+      className="machine-component gauge-display" 
+      style={width && height ? { width, height } : undefined}
+    >
+      <div 
+        className={`component-led ${statusClass}`}
+        onClick={onToggle}
+        style={{ cursor: onToggle ? 'pointer' : 'default' }}
+      ></div>
+      <div className="component-screw-top-left"></div>
+      <div className="component-screw-top-right"></div>
+      <div className="component-screw-bottom-left"></div>
+      <div className="component-screw-bottom-right"></div>
+      <div className="connection-point connection-point-top"></div>
       
-      <h3 className="gauge-title">{displayTitle}</h3>
+      <h3 className="component-title">{displayTitle}</h3>
       
       <div className="gauge-container">
         {/* Use a viewBox with equal width and height to ensure perfect circle */}
@@ -185,7 +203,7 @@ const GaugeDisplay: React.FC<GaugeDisplayProps> = ({
         </div>
       </div>
       
-      <div className="gauge-description">
+      <div className="component-description">
         {displayTitle} Monitoring System
       </div>
     </div>

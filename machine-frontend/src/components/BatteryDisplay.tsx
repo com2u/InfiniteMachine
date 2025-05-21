@@ -1,5 +1,6 @@
 import React from 'react';
 import './BatteryDisplay.css';
+import './MachineComponent.css';
 
 interface BatteryDisplayProps {
   isActive: boolean;
@@ -7,6 +8,7 @@ interface BatteryDisplayProps {
   powerLevel?: number;
   width?: number;
   height?: number;
+  onToggle?: () => void;
 }
 
 const BatteryDisplay: React.FC<BatteryDisplayProps> = ({
@@ -15,6 +17,7 @@ const BatteryDisplay: React.FC<BatteryDisplayProps> = ({
   powerLevel = 75,
   width,
   height,
+  onToggle,
 }) => {
   // Determine battery status and color class
   let statusText = 'OPERATIONAL';
@@ -76,14 +79,22 @@ const BatteryDisplay: React.FC<BatteryDisplayProps> = ({
   };
 
   return (
-    <div className="battery-display" style={width && height ? { width, height } : undefined}>
-      <div className="battery-connection"></div>
-      <div className={`battery-led ${statusClass}`}></div>
-      <div className="battery-screw-top-right"></div>
-      <div className="battery-screw-bottom-left"></div>
-      <div className="battery-screw-bottom-right"></div>
+    <div 
+      className="machine-component battery-display" 
+      style={width && height ? { width, height } : undefined}
+    >
+      <div 
+        className={`component-led ${statusClass}`}
+        onClick={onToggle}
+        style={{ cursor: onToggle ? 'pointer' : 'default' }}
+      ></div>
+      <div className="component-screw-top-left"></div>
+      <div className="component-screw-top-right"></div>
+      <div className="component-screw-bottom-left"></div>
+      <div className="component-screw-bottom-right"></div>
+      <div className="connection-point connection-point-right"></div>
       
-      <h3 className="battery-title">BATTERY</h3>
+      <h3 className="component-title">BATTERY</h3>
       
       <div className="battery-icon-container">
         <div className="battery-icon">
@@ -101,7 +112,7 @@ const BatteryDisplay: React.FC<BatteryDisplayProps> = ({
         </div>
       </div>
       
-      <div className="battery-status">
+      <div className="component-status">
         <div className="status-label">
           <span>STATUS:</span>
           <span className={`status-value ${statusClass}`}>{statusText}</span>
@@ -113,7 +124,7 @@ const BatteryDisplay: React.FC<BatteryDisplayProps> = ({
         </div>
       </div>
       
-      <div className="battery-metrics">
+      <div className="component-metrics">
         <div className="metric">
           <div className="metric-label">VOLTS</div>
           <div className="metric-value">{calculateVoltage()}V</div>
@@ -128,7 +139,7 @@ const BatteryDisplay: React.FC<BatteryDisplayProps> = ({
         </div>
       </div>
       
-      <div className="battery-description">
+      <div className="component-description">
         UNIT {id} - Power Storage System
       </div>
     </div>

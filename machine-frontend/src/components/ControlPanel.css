@@ -1,81 +1,72 @@
+/* Control Panel styles */
 .control-panel {
-  background-color: #222;
-  border: 4px solid #444;
-  border-radius: 10px;
-  padding: 20px;
+  background-color: #1a1a1a;
+  padding: 30px;
+  border: 8px solid #333;
+  border-radius: 15px;
   color: #ddd;
   font-family: 'Courier New', monospace;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.7), inset 0 0 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 0, 0, 0.5);
   position: relative;
   width: 100%;
-  min-height: 800px;
   margin: 0 auto;
-  overflow: auto; /* Make the panel scrollable */
+  overflow: visible;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.1),
+      rgba(0, 0, 0, 0.1) 10px,
+      rgba(0, 0, 0, 0.2) 10px,
+      rgba(0, 0, 0, 0.2) 20px
+    );
 }
 
 .control-panel::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    rgba(0, 0, 0, 0.1),
-    rgba(0, 0, 0, 0.1) 10px,
-    rgba(0, 0, 0, 0.2) 10px,
-    rgba(0, 0, 0, 0.2) 20px
-  );
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
   pointer-events: none;
   z-index: 1;
-  background-attachment: fixed; /* Keep the pattern fixed while scrolling */
 }
 
-.control-panel-title {
-  font-size: 1.8rem;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  text-align: center;
-  margin: 10px 0 30px;
-  color: #ddd;
-  text-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
-  position: relative;
-  z-index: 2;
-}
-
-/* Screws in corners to give industrial look */
+/* Large screws in corners to give industrial look */
 .panel-screw-top-left,
 .panel-screw-top-right,
 .panel-screw-bottom-left,
 .panel-screw-bottom-right {
-  position: fixed; /* Fixed position to keep screws visible while scrolling */
-  width: 20px;
-  height: 20px;
-  background-color: #333;
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background-color: #222;
   border-radius: 50%;
   border: 3px solid #666;
-  z-index: 10;
+  z-index: 3;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
 }
 
 .panel-screw-top-left {
-  top: 10px;
-  left: 10px;
+  top: 15px;
+  left: 15px;
 }
 
 .panel-screw-top-right {
-  top: 10px;
-  right: 10px;
+  top: 15px;
+  right: 15px;
 }
 
 .panel-screw-bottom-left {
-  bottom: 10px;
-  left: 10px;
+  bottom: 15px;
+  left: 15px;
 }
 
 .panel-screw-bottom-right {
-  bottom: 10px;
-  right: 10px;
+  bottom: 15px;
+  right: 15px;
 }
 
 /* Add diagonal line across screws */
@@ -85,8 +76,8 @@
 .panel-screw-bottom-right::before {
   content: '';
   position: absolute;
-  width: 12px;
-  height: 3px;
+  width: 18px;
+  height: 4px;
   background-color: #555;
   top: 50%;
   left: 50%;
@@ -99,20 +90,33 @@
 .panel-screw-bottom-right::after {
   content: '';
   position: absolute;
-  width: 12px;
-  height: 3px;
+  width: 18px;
+  height: 4px;
   background-color: #555;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) rotate(-45deg);
 }
 
+.control-panel-title {
+  font-size: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin: 20px 0 40px;
+  font-weight: bold;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+  border-bottom: 3px solid #444;
+  padding-bottom: 20px;
+}
+
 /* Status indicators */
 .status-indicator {
   display: flex;
   justify-content: center;
-  gap: 30px;
-  margin-bottom: 20px;
+  margin: 30px 0;
   position: relative;
   z-index: 2;
 }
@@ -121,197 +125,117 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #333;
-  padding: 10px 15px;
-  border-radius: 5px;
-  border: 1px solid #555;
+  margin: 0 30px;
 }
 
 .indicator-led {
-  width: 15px;
-  height: 15px;
+  width: 25px;
+  height: 25px;
   border-radius: 50%;
-  margin-bottom: 5px;
-  border: 1px solid #666;
-}
-
-.indicator-led.operational {
-  background-color: #4caf50;
-  box-shadow: 0 0 10px #4caf50;
-}
-
-.indicator-led.warning {
-  background-color: #ff9800;
-  box-shadow: 0 0 10px #ff9800;
-  animation: blink 1s infinite;
-}
-
-.indicator-led.critical {
-  background-color: #f44336;
-  box-shadow: 0 0 10px #f44336;
-  animation: blink 0.5s infinite;
+  margin-bottom: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
 }
 
 .indicator-led.active {
   background-color: #4caf50;
-  box-shadow: 0 0 10px #4caf50;
+  box-shadow: 0 0 15px #4caf50;
+  animation: pulse 2s infinite;
 }
 
-.indicator-led.inactive {
-  background-color: #666;
-  box-shadow: none;
+.indicator-led.warning {
+  background-color: #ff9800;
+  box-shadow: 0 0 15px #ff9800;
+  animation: pulse 1s infinite;
 }
 
-@keyframes blink {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
+.indicator-led.critical {
+  background-color: #f44336;
+  box-shadow: 0 0 15px #f44336;
+  animation: pulse 0.5s infinite;
+}
+
+.indicator-led.operational {
+  background-color: #4caf50;
+  box-shadow: 0 0 15px #4caf50;
+  animation: pulse 2s infinite;
 }
 
 .indicator-label {
   font-size: 0.8rem;
-  text-transform: uppercase;
+  font-weight: bold;
   color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 /* System status display */
 .system-status {
   display: flex;
-  justify-content: center;
-  gap: 30px;
-  margin-bottom: 30px;
+  justify-content: space-around;
+  margin: 30px 0;
+  padding: 20px;
+  background-color: #222;
+  border-radius: 10px;
+  border: 2px solid #444;
   position: relative;
   z-index: 2;
-}
-
-.system-status > div {
-  background-color: #333;
-  padding: 10px 15px;
-  border-radius: 5px;
-  border: 1px solid #555;
-  min-width: 150px;
-  text-align: center;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7);
 }
 
 .system-status-label {
-  font-size: 0.8rem;
-  text-transform: uppercase;
+  font-size: 0.9rem;
   color: #aaa;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 
 .system-status-value {
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   font-weight: bold;
   color: #4caf50;
+  text-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
 }
 
 .system-status-value.warning {
   color: #ff9800;
+  text-shadow: 0 0 5px rgba(255, 152, 0, 0.5);
 }
 
 .system-status-value.critical {
   color: #f44336;
-  animation: blink 1s infinite;
+  text-shadow: 0 0 5px rgba(244, 67, 54, 0.5);
+}
+
+/* Component container */
+.component-container {
+  position: relative;
+  margin-top: 40px;
+  width: 100%;
+  z-index: 2;
 }
 
 /* Fixed component positioning */
 .fixed-component {
   position: absolute;
-  z-index: 3;
-  transition: transform 0.3s ease; /* Smooth transition for any transformations */
+  transition: transform 0.3s ease;
 }
 
-/* Add a subtle hover effect to components */
 .fixed-component:hover {
-  transform: scale(1.02);
-  z-index: 4; /* Bring hovered component to front */
+  z-index: 10;
 }
 
-/* Connection lines */
-.connection-line {
-  position: absolute;
-  background-color: #666;
-  z-index: 2;
-}
-
-.connection-line.horizontal {
-  height: 2px;
-}
-
-.connection-line.vertical {
-  width: 2px;
-}
-
-.connection-line.active {
-  background-color: #4caf50;
-  box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
-}
-
-.connection-line.warning {
-  background-color: #ff9800;
-  box-shadow: 0 0 5px rgba(255, 152, 0, 0.5);
-}
-
-.connection-line.critical {
-  background-color: #f44336;
-  box-shadow: 0 0 5px rgba(244, 67, 54, 0.5);
-}
-
-.connection-line.inactive {
-  background-color: #555;
-}
-
-.connection-node {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #888;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-}
-
-.connection-node.active {
-  background-color: #4caf50;
-  box-shadow: 0 0 5px rgba(76, 175, 80, 0.8);
-}
-
-.connection-node.warning {
-  background-color: #ff9800;
-  box-shadow: 0 0 5px rgba(255, 152, 0, 0.8);
-}
-
-.connection-node.critical {
-  background-color: #f44336;
-  box-shadow: 0 0 5px rgba(244, 67, 54, 0.8);
-}
-
-.connection-node.inactive {
-  background-color: #555;
-}
-
-/* Make the app content scrollable */
-.app-content {
-  overflow: auto;
-  max-height: calc(100vh - 120px); /* Adjust based on header/footer height */
-}
-
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-  .fixed-component {
-    transform: scale(0.9);
+/* Pulse animation for LEDs */
+@keyframes pulse {
+  0% {
+    opacity: 1;
   }
-}
-
-@media (max-width: 992px) {
-  .fixed-component {
-    transform: scale(0.85);
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
   }
 }

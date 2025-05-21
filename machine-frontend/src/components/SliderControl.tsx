@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './SliderControl.css';
+import './MachineComponent.css';
 
 interface SliderControlProps {
   title?: string;
@@ -13,6 +14,8 @@ interface SliderControlProps {
   height?: number;
   disabled?: boolean; // Added for compatibility with ComponentRenderer
   units?: string; // Added for compatibility with ComponentRenderer
+  isActive?: boolean;
+  onToggle?: () => void;
 }
 
 const SliderControl: React.FC<SliderControlProps> = ({
@@ -27,6 +30,8 @@ const SliderControl: React.FC<SliderControlProps> = ({
   height,
   disabled = false,
   units,
+  isActive = true,
+  onToggle,
 }) => {
   // Use provided values or fallbacks
   const displayTitle = title || label || 'CONTROL';
@@ -163,13 +168,22 @@ const SliderControl: React.FC<SliderControlProps> = ({
   };
 
   return (
-    <div className="slider-control" style={width && height ? { width, height } : undefined}>
-      <div className="slider-led"></div>
-      <div className="slider-screw-top-right"></div>
-      <div className="slider-screw-bottom-left"></div>
-      <div className="slider-screw-bottom-right"></div>
+    <div 
+      className="machine-component slider-control" 
+      style={width && height ? { width, height } : undefined}
+    >
+      <div 
+        className={`component-led ${isActive ? 'active' : 'inactive'}`}
+        onClick={onToggle}
+        style={{ cursor: onToggle ? 'pointer' : 'default' }}
+      ></div>
+      <div className="component-screw-top-left"></div>
+      <div className="component-screw-top-right"></div>
+      <div className="component-screw-bottom-left"></div>
+      <div className="component-screw-bottom-right"></div>
+      <div className="connection-point connection-point-bottom"></div>
       
-      <h3 className="slider-title">{displayTitle}</h3>
+      <h3 className="component-title">{displayTitle}</h3>
       
       <div className="slider-container">
         <div 
@@ -222,7 +236,7 @@ const SliderControl: React.FC<SliderControlProps> = ({
         </button>
       </div>
       
-      <div className="slider-description">
+      <div className="component-description">
         {displayTitle} Control System
       </div>
     </div>

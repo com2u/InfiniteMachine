@@ -4,9 +4,40 @@ import GeneratorDisplay from './GeneratorDisplay';
 import GaugeDisplay from './GaugeDisplay';
 import SliderControl from './SliderControl';
 import './ControlPanel.css';
+import './MachineComponent.css';
+
+// Define the type for our system data to match App.tsx
+interface SystemData {
+  timestamp: string;
+  systemStatus: string;
+  components: {
+    batteries: Array<{
+      id: number;
+      status: string;
+      powerLevel: number;
+    }>;
+    generators: Array<{
+      id: number;
+      status: string;
+      powerLevel: number;
+    }>;
+    sensors: {
+      pressure: number;
+      temperature: number;
+      flowRate: number;
+    };
+  };
+}
+
+// Define the type for backend API data
+interface BackendData {
+  [key: string]: any;
+}
 
 interface ControlPanelProps {
-  systemData: any | null; // Add systemData prop to match App.tsx
+  systemData: SystemData | null;
+  backendData: BackendData | null;
+  onUpdateBackend: (key: string, value: any) => Promise<any>;
 }
 
 interface ComponentPosition {
@@ -26,7 +57,7 @@ interface Connection {
   status: 'active' | 'warning' | 'critical' | 'inactive';
 }
 
-const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
+const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, onUpdateBackend }) => {
   const [systemStatus, setSystemStatus] = useState('OPERATIONAL');
   const [systemLoad, setSystemLoad] = useState(78);
   const [powerOutput, setPowerOutput] = useState(1.2);
@@ -34,53 +65,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
   
   // Define fixed positions for components with improved alignment
   const components: ComponentPosition[] = [
-    // Row 1: Batteries
-    {
-      id: 'battery1',
-      type: 'battery',
-      x: 50,
-      y: 150,
-      width: 250,
-      height: 380,
-      props: {
-        isActive: true,
-        id: "1",
-        powerLevel: 87
-      }
-    },
-    {
-      id: 'battery2',
-      type: 'battery',
-      x: 350,
-      y: 150,
-      width: 250,
-      height: 380,
-      props: {
-        isActive: true,
-        id: "2",
-        powerLevel: 65
-      }
-    },
-    {
-      id: 'battery3',
-      type: 'battery',
-      x: 650,
-      y: 150,
-      width: 250,
-      height: 380,
-      props: {
-        isActive: false,
-        id: "3",
-        powerLevel: 30
-      }
-    },
-    
-    // Row 2: Generators
+    // Row 1: Generators
     {
       id: 'generator1',
       type: 'generator',
       x: 50,
-      y: 580,
+      y: 150,
       width: 250,
       height: 380,
       props: {
@@ -93,7 +83,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
       id: 'generator2',
       type: 'generator',
       x: 350,
-      y: 580,
+      y: 150,
       width: 250,
       height: 380,
       props: {
@@ -106,13 +96,54 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
       id: 'generator3',
       type: 'generator',
       x: 650,
-      y: 580,
+      y: 150,
       width: 250,
       height: 380,
       props: {
         isActive: false,
         id: "3",
         powerLevel: 0
+      }
+    },
+    
+    // Row 2: Batteries (Akku)
+    {
+      id: 'battery1',
+      type: 'battery',
+      x: 50,
+      y: 580,
+      width: 250,
+      height: 380,
+      props: {
+        isActive: true,
+        id: "1",
+        powerLevel: 87
+      }
+    },
+    {
+      id: 'battery2',
+      type: 'battery',
+      x: 350,
+      y: 580,
+      width: 250,
+      height: 380,
+      props: {
+        isActive: true,
+        id: "2",
+        powerLevel: 65
+      }
+    },
+    {
+      id: 'battery3',
+      type: 'battery',
+      x: 650,
+      y: 580,
+      width: 250,
+      height: 380,
+      props: {
+        isActive: false,
+        id: "3",
+        powerLevel: 30
       }
     },
     
@@ -213,62 +244,62 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
   
   // Define connections between components
   const connections: Connection[] = [
-    // Battery to Generator connections
+    // Generator to Battery (Akku) connections
     {
-      from: 'battery1',
-      to: 'generator1',
+      from: 'generator1',
+      to: 'battery1',
       type: 'power',
       status: 'active'
     },
     {
-      from: 'battery2',
-      to: 'generator2',
+      from: 'generator2',
+      to: 'battery2',
       type: 'power',
       status: 'active'
     },
     {
-      from: 'battery3',
-      to: 'generator3',
+      from: 'generator3',
+      to: 'battery3',
       type: 'power',
       status: 'inactive'
     },
     
-    // Generator to Gauge connections
+    // Battery (Akku) to Gauge (aggregator) connections
     {
-      from: 'generator1',
+      from: 'battery1',
       to: 'pressure-gauge',
       type: 'data',
       status: 'active'
     },
     {
-      from: 'generator2',
+      from: 'battery2',
       to: 'temperature-gauge',
       type: 'data',
       status: 'active'
     },
     {
-      from: 'generator3',
+      from: 'battery3',
       to: 'flow-gauge',
       type: 'data',
       status: 'inactive'
     },
     
-    // Slider to Generator connections
+    // Gauge (aggregator) to Slider (Producer) connections
     {
-      from: 'power-slider',
-      to: 'generator1',
+      from: 'pressure-gauge',
+      to: 'power-slider',
       type: 'control',
       status: 'active'
     },
     {
-      from: 'flow-slider',
-      to: 'generator2',
+      from: 'temperature-gauge',
+      to: 'flow-slider',
       type: 'control',
       status: 'active'
     },
     {
-      from: 'pressure-slider',
-      to: 'generator3',
+      from: 'flow-gauge',
+      to: 'pressure-slider',
       type: 'control',
       status: 'inactive'
     }
@@ -288,6 +319,17 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
       const toX = toComponent.x + toComponent.width / 2;
       const toY = toComponent.y + toComponent.height / 2;
       
+      // Determine connection status based on the active state of the connected components
+      let connectionStatus = 'inactive';
+      const fromIsActive = backendData?.[`${fromComponent.id}.active`] !== false;
+      const toIsActive = backendData?.[`${toComponent.id}.active`] !== false;
+      
+      if (fromIsActive && toIsActive) {
+        connectionStatus = 'active';
+      } else if (fromIsActive || toIsActive) {
+        connectionStatus = 'warning';
+      }
+      
       // Determine if connection is horizontal or vertical
       const isHorizontal = Math.abs(toX - fromX) > Math.abs(toY - fromY);
       
@@ -299,7 +341,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
           <React.Fragment key={`connection-${index}`}>
             {/* Horizontal line from source */}
             <div 
-              className={`connection-line horizontal ${connection.status}`}
+              className={`connection-line horizontal ${connectionStatus}`}
               style={{
                 left: fromX,
                 top: fromY,
@@ -310,7 +352,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
             
             {/* Vertical line */}
             <div 
-              className={`connection-line vertical ${connection.status}`}
+              className={`connection-line vertical ${connectionStatus}`}
               style={{
                 left: midX,
                 top: Math.min(fromY, toY),
@@ -320,7 +362,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
             
             {/* Horizontal line to target */}
             <div 
-              className={`connection-line horizontal ${connection.status}`}
+              className={`connection-line horizontal ${connectionStatus}`}
               style={{
                 left: Math.min(midX, toX),
                 top: toY,
@@ -330,11 +372,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
             
             {/* Connection nodes */}
             <div 
-              className={`connection-node ${connection.status}`}
+              className={`connection-node ${connectionStatus}`}
               style={{ left: fromX, top: fromY }}
             ></div>
             <div 
-              className={`connection-node ${connection.status}`}
+              className={`connection-node ${connectionStatus}`}
               style={{ left: toX, top: toY }}
             ></div>
           </React.Fragment>
@@ -347,7 +389,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
           <React.Fragment key={`connection-${index}`}>
             {/* Vertical line from source */}
             <div 
-              className={`connection-line vertical ${connection.status}`}
+              className={`connection-line vertical ${connectionStatus}`}
               style={{
                 left: fromX,
                 top: Math.min(fromY, midY),
@@ -357,7 +399,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
             
             {/* Horizontal line */}
             <div 
-              className={`connection-line horizontal ${connection.status}`}
+              className={`connection-line horizontal ${connectionStatus}`}
               style={{
                 left: Math.min(fromX, toX),
                 top: midY,
@@ -367,7 +409,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
             
             {/* Vertical line to target */}
             <div 
-              className={`connection-line vertical ${connection.status}`}
+              className={`connection-line vertical ${connectionStatus}`}
               style={{
                 left: toX,
                 top: Math.min(midY, toY),
@@ -377,17 +419,91 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
             
             {/* Connection nodes */}
             <div 
-              className={`connection-node ${connection.status}`}
+              className={`connection-node ${connectionStatus}`}
               style={{ left: fromX, top: fromY }}
             ></div>
             <div 
-              className={`connection-node ${connection.status}`}
+              className={`connection-node ${connectionStatus}`}
               style={{ left: toX, top: toY }}
             ></div>
           </React.Fragment>
         );
       }
     });
+  };
+  
+  // Handle generator toggle
+  const handleGeneratorToggle = (generatorId: string) => {
+    const backendKey = `generator${generatorId}.active`;
+    const currentValue = backendData?.[backendKey];
+    
+    if (currentValue !== undefined) {
+      onUpdateBackend(backendKey, !currentValue);
+    }
+  };
+  
+  // Handle generator power level change
+  const handleGeneratorPowerChange = (generatorId: string, value: number) => {
+    // Convert percentage (0-100) to generator value (0-10)
+    const backendValue = Math.round((value / 100) * 10);
+    const backendKey = `generator${generatorId}.value`;
+    
+    onUpdateBackend(backendKey, backendValue);
+  };
+  
+  // Handle battery toggle
+  const handleBatteryToggle = (batteryId: string) => {
+    const backendKey = `akku${batteryId}.active`;
+    const currentValue = backendData?.[backendKey];
+    
+    if (currentValue !== undefined) {
+      onUpdateBackend(backendKey, !currentValue);
+    }
+  };
+  
+  // Handle producer consumption change
+  const handleProducerConsumptionChange = (value: number) => {
+    // Convert percentage (0-100) to consumption value (1-10)
+    const backendValue = Math.max(1, Math.min(10, Math.round((value / 100) * 10)));
+    onUpdateBackend('producer.consumption', backendValue);
+  };
+  
+  // Handle aggregator toggle
+  const handleAggregatorToggle = () => {
+    const currentValue = backendData?.['aggregator.active'];
+    
+    if (currentValue !== undefined) {
+      onUpdateBackend('aggregator.active', !currentValue);
+    }
+  };
+  
+  // Handle producer toggle
+  const handleProducerToggle = () => {
+    const currentValue = backendData?.['producer.active'];
+    
+    if (currentValue !== undefined) {
+      onUpdateBackend('producer.active', !currentValue);
+    }
+  };
+  
+  // Handle gauge toggle
+  const handleGaugeToggle = (gaugeId: string) => {
+    const backendKey = `${gaugeId}.active`;
+    const currentValue = backendData?.[backendKey];
+    
+    if (currentValue !== undefined) {
+      onUpdateBackend(backendKey, !currentValue);
+    }
+  };
+  
+  // Handle slider toggle
+  const handleSliderToggle = (sliderId: string) => {
+    const backendKey = `${sliderId}.active`;
+    const currentValue = backendData?.[backendKey];
+    
+    if (currentValue !== undefined) {
+      onUpdateBackend(backendKey, !currentValue);
+    }
   };
   
   // Render components based on their type and position
@@ -405,25 +521,55 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
       case 'battery':
         return (
           <div key={id} className="fixed-component" style={style}>
-            <BatteryDisplay {...props} width={width} height={height} />
+            <BatteryDisplay 
+              {...props} 
+              width={width} 
+              height={height}
+              onToggle={() => handleBatteryToggle(props.id)}
+            />
           </div>
         );
       case 'generator':
         return (
           <div key={id} className="fixed-component" style={style}>
-            <GeneratorDisplay {...props} width={width} height={height} />
+            <GeneratorDisplay 
+              {...props} 
+              width={width} 
+              height={height}
+              onToggle={() => handleGeneratorToggle(props.id)}
+              onPowerChange={(value) => handleGeneratorPowerChange(props.id, value)}
+            />
           </div>
         );
       case 'gauge':
         return (
           <div key={id} className="fixed-component" style={style}>
-            <GaugeDisplay {...props} width={width} height={height} />
+            <GaugeDisplay 
+              {...props} 
+              width={width} 
+              height={height}
+              isActive={backendData?.[`${id}.active`] !== false}
+              onToggle={() => handleGaugeToggle(id)}
+            />
           </div>
         );
       case 'slider':
+        // Map slider IDs to their respective handlers
+        let onChangeHandler;
+        if (id === 'power-slider') {
+          onChangeHandler = handleProducerConsumptionChange;
+        }
+        
         return (
           <div key={id} className="fixed-component" style={style}>
-            <SliderControl {...props} width={width} height={height} />
+            <SliderControl 
+              {...props} 
+              width={width} 
+              height={height}
+              onChange={onChangeHandler}
+              isActive={backendData?.[`${id}.active`] !== false}
+              onToggle={() => handleSliderToggle(id)}
+            />
           </div>
         );
       default:
@@ -434,8 +580,40 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
   // Update component values based on systemData if available
   useEffect(() => {
     if (systemData) {
-      // Here you would update component values based on systemData
-      // For now, we'll just use the simulated values
+      // Update battery components
+      const updatedComponents = [...components];
+      
+      systemData.components.batteries.forEach(battery => {
+        const batteryComponent = updatedComponents.find(c => c.id === `battery${battery.id}`);
+        if (batteryComponent) {
+          batteryComponent.props.isActive = battery.status === 'active';
+          batteryComponent.props.powerLevel = battery.powerLevel;
+        }
+      });
+      
+      systemData.components.generators.forEach(generator => {
+        const generatorComponent = updatedComponents.find(c => c.id === `generator${generator.id}`);
+        if (generatorComponent) {
+          generatorComponent.props.isActive = generator.status === 'active';
+          generatorComponent.props.powerLevel = generator.powerLevel;
+        }
+      });
+      
+      // Update gauge components
+      const pressureGauge = updatedComponents.find(c => c.id === 'pressure-gauge');
+      if (pressureGauge) {
+        pressureGauge.props.value = systemData.components.sensors.pressure;
+      }
+      
+      const temperatureGauge = updatedComponents.find(c => c.id === 'temperature-gauge');
+      if (temperatureGauge) {
+        temperatureGauge.props.value = systemData.components.sensors.temperature;
+      }
+      
+      const flowGauge = updatedComponents.find(c => c.id === 'flow-gauge');
+      if (flowGauge) {
+        flowGauge.props.value = systemData.components.sensors.flowRate;
+      }
     }
   }, [systemData]);
   
@@ -474,10 +652,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
   }, [systemLoad]);
 
   // Calculate the minimum height needed for all components
-  const minHeight = Math.max(...components.map(c => c.y + c.height)) + 50;
+  const minHeight = Math.max(...components.map(c => c.y + c.height)) + 100;
 
   return (
-    <div className="control-panel" style={{ minHeight: `${minHeight}px` }}>
+    <div className="control-panel" style={{ minHeight: `${minHeight}px`, position: 'relative' }}>
       <div className="panel-screw-top-left"></div>
       <div className="panel-screw-top-right"></div>
       <div className="panel-screw-bottom-left"></div>
@@ -488,40 +666,46 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData }) => {
       {/* System status indicators */}
       <div className="status-indicator">
         <div className="indicator">
-          <div className={`indicator-led ${systemStatus.toLowerCase()}`}></div>
-          <div className="indicator-label">System</div>
+          <div 
+            className={`indicator-led ${systemStatus.toLowerCase()}`}
+            onClick={() => onUpdateBackend('system.debug', true)}
+            style={{ cursor: 'pointer' }}
+          ></div>
+          <div className="indicator-label">SYSTEM</div>
         </div>
         <div className="indicator">
           <div className="indicator-led active"></div>
-          <div className="indicator-label">Power</div>
+          <div className="indicator-label">POWER</div>
         </div>
         <div className="indicator">
           <div className="indicator-led active"></div>
-          <div className="indicator-label">Network</div>
+          <div className="indicator-label">NETWORK</div>
         </div>
       </div>
       
       {/* System metrics */}
       <div className="system-status">
         <div>
-          <div className="system-status-label">System Load</div>
+          <div className="system-status-label">SYSTEM LOAD</div>
           <div className={`system-status-value ${systemStatus.toLowerCase()}`}>{Math.round(systemLoad)}%</div>
         </div>
         <div>
-          <div className="system-status-label">Power Output</div>
+          <div className="system-status-label">POWER OUTPUT</div>
           <div className="system-status-value">{powerOutput.toFixed(1)} kW</div>
         </div>
         <div>
-          <div className="system-status-label">Efficiency</div>
+          <div className="system-status-label">EFFICIENCY</div>
           <div className="system-status-value">{Math.round(efficiency)}%</div>
         </div>
       </div>
       
-      {/* Render all components */}
-      {components.map(renderComponent)}
-      
-      {/* Render connections between components */}
-      {renderConnections()}
+      <div className="component-container">
+        {/* Render all components */}
+        {components.map(renderComponent)}
+        
+        {/* Render connections between components */}
+        {renderConnections()}
+      </div>
     </div>
   );
 };

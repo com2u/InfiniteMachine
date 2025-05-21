@@ -1,140 +1,195 @@
-import { useState, useEffect } from 'react';
-import './components/App.css';
+import React, { useState, useEffect } from 'react';
 import ControlPanel from './components/ControlPanel';
+import './App.css';
 
-// Define types for the system data
-interface Battery {
-  id: number;
-  charge: number;
-  isActive: boolean;
-}
-
-interface Generator {
-  id: number;
-  output: number;
-  isActive: boolean;
-}
-
-interface Metrics {
-  systemLoad: number;
-  powerOutput: number;
-  efficiency: number;
-  pressure: number;
-  temperature: number;
-  flowRate: number;
-}
-
+// Define the type for our system data
 interface SystemData {
-  status: string;
-  batteries: Battery[];
-  generators: Generator[];
-  metrics: Metrics;
+  timestamp: string;
+  systemStatus: string;
+  components: {
+    batteries: Array<{
+      id: number;
+      status: string;
+      powerLevel: number;
+    }>;
+    generators: Array<{
+      id: number;
+      status: string;
+      powerLevel: number;
+    }>;
+    sensors: {
+      pressure: number;
+      temperature: number;
+      flowRate: number;
+    };
+  };
+}
+
+// Define the type for backend API data
+interface BackendData {
+  [key: string]: any;
 }
 
 function App() {
   const [systemData, setSystemData] = useState<SystemData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [backendData, setBackendData] = useState<BackendData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [connectionAttempts, setConnectionAttempts] = useState(0);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Attempt to fetch data from the API
-        const response = await fetch('http://localhost:8000/api/status', {
-          signal: AbortSignal.timeout(3000), // Timeout after 3 seconds
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch system data: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        setSystemData(data);
-        setLoading(false);
-        setError(null);
-        setConnectionAttempts(0); // Reset connection attempts on success
-      } catch (err: any) {
-        // Handle connection errors gracefully
-        console.error('Error fetching data:', err);
-        
-        // If we've tried to connect multiple times, show a more detailed error
-        if (connectionAttempts > 3) {
-          setError('Error connecting to machine simulator. Please ensure it is running.');
-        } else {
-          setError('Connecting to machine simulator...');
-          setConnectionAttempts(prev => prev + 1);
-        }
-        
-        // Even if there's an error, we're no longer in the initial loading state
-        setLoading(false);
-        
-        // Use mock data for UI development when backend is not available
-        const mockData: SystemData = {
-          status: 'SIMULATED',
+  
+  // Function to update a backend variable
+  const updateBackendVariable = async (key: string, value: any) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ [key]: value }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to update ${key}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('Update successful:', result);
+      
+      // Refresh data immediately after update
+      fetchBackendData();
+      
+      return result;
+    } catch (err) {
+      console.error('Error updating variable:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+      return null;
+    }
+  };
+  
+  // Fetch data from the backend API
+  const fetchBackendData = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/status');
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      setBackendData(data);
+      
+      // Transform backend data to match SystemData interface
+      const transformedData: SystemData = {
+        timestamp: new Date().toISOString(),
+        systemStatus: determineSystemStatus(data),
+        components: {
           batteries: [
-            { id: 1, charge: 87, isActive: true },
-            { id: 2, charge: 65, isActive: true },
-            { id: 3, charge: 30, isActive: false }
+            { 
+              id: 1, 
+              status: data['akku1.active'] ? 'active' : 'inactive', 
+              powerLevel: calculatePowerLevel(data['akku1.value'], data['akku1.capacity'])
+            },
+            { 
+              id: 2, 
+              status: data['akku2.active'] ? 'active' : 'inactive', 
+              powerLevel: calculatePowerLevel(data['akku2.value'], data['akku2.capacity'])
+            },
+            { 
+              id: 3, 
+              status: data['akku3.active'] ? 'active' : 'inactive', 
+              powerLevel: calculatePowerLevel(data['akku3.value'], data['akku3.capacity'])
+            }
           ],
           generators: [
-            { id: 1, output: 75, isActive: true },
-            { id: 2, output: 65, isActive: true },
-            { id: 3, output: 0, isActive: false }
+            { 
+              id: 1, 
+              status: data['generator1.active'] ? 'active' : 'inactive', 
+              powerLevel: calculateGeneratorPowerLevel(data['generator1.value'])
+            },
+            { 
+              id: 2, 
+              status: data['generator2.active'] ? 'active' : 'inactive', 
+              powerLevel: calculateGeneratorPowerLevel(data['generator2.value'])
+            },
+            { 
+              id: 3, 
+              status: data['generator3.active'] ? 'active' : 'inactive', 
+              powerLevel: calculateGeneratorPowerLevel(data['generator3.value'])
+            }
           ],
-          metrics: {
-            systemLoad: 78,
-            powerOutput: 1.2,
-            efficiency: 85,
-            pressure: 75,
-            temperature: 65,
+          sensors: {
+            pressure: 75, // These could be mapped to actual backend values if available
+            temperature: Math.round(data['room.temp']),
             flowRate: 42
           }
-        };
-        
-        setSystemData(mockData);
-      }
-    };
-
+        }
+      };
+      
+      setSystemData(transformedData);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    }
+  };
+  
+  // Helper function to determine system status based on backend data
+  const determineSystemStatus = (data: BackendData): string => {
+    // Example logic - could be adjusted based on actual backend data
+    const generatorsActive = 
+      data['generator1.active'] || 
+      data['generator2.active'] || 
+      data['generator3.active'];
+    
+    const akkusActive = 
+      data['akku1.active'] || 
+      data['akku2.active'] || 
+      data['akku3.active'];
+    
+    if (!generatorsActive) {
+      return 'critical';
+    } else if (!akkusActive) {
+      return 'warning';
+    } else {
+      return 'operational';
+    }
+  };
+  
+  // Helper function to calculate battery power level as percentage
+  const calculatePowerLevel = (value: number, capacity: number): number => {
+    if (!capacity) return 0;
+    return Math.round((value / capacity) * 100);
+  };
+  
+  // Helper function to convert generator value (0-10) to percentage (0-100)
+  const calculateGeneratorPowerLevel = (value: number): number => {
+    return Math.round((value / 10) * 100);
+  };
+  
+  // Fetch data on component mount and set up interval for periodic updates
+  useEffect(() => {
     // Initial fetch
-    fetchData();
-
-    // Set up polling interval - less frequent if we're having connection issues
-    const intervalId = setInterval(fetchData, connectionAttempts > 3 ? 5000 : 1000);
-
-    // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
-  }, [connectionAttempts]);
+    fetchBackendData();
+    
+    // Set up interval for periodic updates
+    const interval = setInterval(fetchBackendData, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="app">
-      <header className="app-header">
-        <h1>INFINITE MACHINE</h1>
-        <div className="system-info">
-          {loading ? (
-            <span className="status-loading">Connecting to system...</span>
-          ) : error ? (
-            <div className="status-error">
-              <span className="error-indicator"></span>
-              {error}
-            </div>
-          ) : (
-            <div className="status-connected">
-              <span className="connected-indicator"></span>
-              System Connected
-            </div>
-          )}
-        </div>
-      </header>
-
-      <main className="app-content">
-        <ControlPanel systemData={systemData} />
-      </main>
-
-      <footer className="app-footer">
-        <p>INFINITE MACHINE CONTROL SYSTEM v1.0</p>
-        <p>© 2025 Industrial Control Systems</p>
-      </footer>
+      <div className="app-background"></div>
+      <div className="app-container">
+        {error && (
+          <div className="error-message">
+            Error connecting to backend: {error}
+          </div>
+        )}
+        <ControlPanel 
+          systemData={systemData} 
+          backendData={backendData}
+          onUpdateBackend={updateBackendVariable}
+        />
+      </div>
     </div>
   );
 }

@@ -1,53 +1,6 @@
+/* Gauge-specific styles */
 .gauge-display {
-  background-color: #333;
-  border: 2px solid #555;
-  border-radius: 8px;
-  padding: 20px;
-  color: #ddd;
-  font-family: 'Courier New', monospace;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), inset 0 0 5px rgba(0, 0, 0, 0.5);
-  position: relative;
-  width: 100%;
-  max-width: 300px;
-  margin: 0 auto;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.gauge-display::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    rgba(0, 0, 0, 0.1),
-    rgba(0, 0, 0, 0.1) 10px,
-    rgba(0, 0, 0, 0.2) 10px,
-    rgba(0, 0, 0, 0.2) 20px
-  );
-  border-radius: 6px;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.gauge-title {
-  font-size: 1.2rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 15px;
-  font-weight: bold;
-  border-bottom: 1px solid #555;
-  padding-bottom: 10px;
-  width: 100%;
-  text-align: center;
-  position: relative;
-  z-index: 2;
+  /* Specific styles for gauge display that complement the machine-component base */
 }
 
 .gauge-container {
@@ -67,6 +20,7 @@
   height: 120px;
   overflow: visible;
   display: block;
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
 }
 
 /* Make sure the gauge arcs are perfectly circular */
@@ -81,6 +35,13 @@
   margin: 15px 0;
   position: relative;
   z-index: 2;
+  background-color: #222;
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: 2px solid #444;
+  min-width: 120px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 0 5px rgba(0, 150, 255, 0.5);
 }
 
 .gauge-unit {
@@ -109,111 +70,28 @@
   height: 15px;
   border-radius: 50%;
   margin-bottom: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .gauge-range-color.normal {
   background-color: #4caf50;
+  box-shadow: 0 0 5px #4caf50;
 }
 
 .gauge-range-color.warning {
   background-color: #ff9800;
+  box-shadow: 0 0 5px #ff9800;
 }
 
 .gauge-range-color.critical {
   background-color: #f44336;
+  box-shadow: 0 0 5px #f44336;
 }
 
 .gauge-range-label {
   font-size: 0.7rem;
   color: #aaa;
-}
-
-.gauge-description {
-  font-size: 0.7rem;
-  color: #888;
-  margin-top: 10px;
-  position: relative;
-  z-index: 2;
-}
-
-.gauge-led {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  z-index: 5;
-}
-
-.gauge-led.normal {
-  background-color: #4caf50;
-  box-shadow: 0 0 5px #4caf50;
-}
-
-.gauge-led.warning {
-  background-color: #ff9800;
-  box-shadow: 0 0 5px #ff9800;
-}
-
-.gauge-led.critical {
-  background-color: #f44336;
-  box-shadow: 0 0 5px #f44336;
-}
-
-/* Screws in corners to give industrial look */
-.screw-top-right,
-.screw-bottom-left,
-.screw-bottom-right {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background-color: #222;
-  border-radius: 50%;
-  border: 2px solid #666;
-  z-index: 3;
-}
-
-.screw-top-right {
-  top: 5px;
-  right: 5px;
-}
-
-.screw-bottom-left {
-  bottom: 5px;
-  left: 5px;
-}
-
-.screw-bottom-right {
-  bottom: 5px;
-  right: 5px;
-}
-
-/* Add diagonal line across screws */
-.screw-top-right::before,
-.screw-bottom-left::before,
-.screw-bottom-right::before {
-  content: '';
-  position: absolute;
-  width: 6px;
-  height: 2px;
-  background-color: #666;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-
-.screw-top-right::after,
-.screw-bottom-left::after,
-.screw-bottom-right::after {
-  content: '';
-  position: absolute;
-  width: 6px;
-  height: 2px;
-  background-color: #666;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-45deg);
+  font-weight: bold;
 }
 
 /* Gauge needle and center */
@@ -222,12 +100,14 @@
   stroke-width: 2;
   stroke-linecap: round;
   transition: transform 0.5s ease;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
 }
 
 .gauge-center {
   fill: #888;
   stroke: #666;
   stroke-width: 2;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
 }
 
 /* Gauge tick marks */
@@ -246,24 +126,27 @@
 /* Gauge segments */
 .gauge-segment-normal {
   stroke: #4caf50;
-  stroke-width: 10;
+  stroke-width: 12;
   stroke-linecap: round;
+  filter: drop-shadow(0 0 3px rgba(76, 175, 80, 0.5));
 }
 
 .gauge-segment-warning {
   stroke: #ff9800;
-  stroke-width: 10;
+  stroke-width: 12;
   stroke-linecap: round;
+  filter: drop-shadow(0 0 3px rgba(255, 152, 0, 0.5));
 }
 
 .gauge-segment-critical {
   stroke: #f44336;
-  stroke-width: 10;
+  stroke-width: 12;
   stroke-linecap: round;
+  filter: drop-shadow(0 0 3px rgba(244, 67, 54, 0.5));
 }
 
 .gauge-segment-background {
   stroke: #222;
-  stroke-width: 10;
+  stroke-width: 14;
   stroke-linecap: round;
 }
