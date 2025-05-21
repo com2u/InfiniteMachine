@@ -207,6 +207,13 @@ const ComponentRenderer: React.FC<ComponentRendererProps> = ({
           <div className="mt-3">
             <LedDisplay
               isActive={!!(machineState[`${id}.${visualization.source_key || 'temp'}`] as number > 0)}
+              onToggle={() => {
+                const key = `${id}.active`;
+                const currentValue = machineState[key];
+                if (typeof currentValue === 'boolean') {
+                  updateVariable(key, !currentValue);
+                }
+              }}
             />
           </div>
         )}

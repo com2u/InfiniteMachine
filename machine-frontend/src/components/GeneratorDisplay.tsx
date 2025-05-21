@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './GeneratorDisplay.css';
 import './MachineComponent.css';
+import LedDisplay from './LedDisplay';
 
 interface GeneratorDisplayProps {
   isActive: boolean;
@@ -89,11 +90,10 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
       className="machine-component generator-display" 
       style={width && height ? { width, height } : undefined}
     >
-      <div 
-        className={`component-led ${isActive ? 'active' : 'inactive'}`} 
-        onClick={onToggle}
-        style={{ cursor: onToggle ? 'pointer' : 'default' }}
-      ></div>
+      <LedDisplay 
+        isActive={isActive}
+        onToggle={onToggle}
+      />
       <div className="component-screw-top-left"></div>
       <div className="component-screw-top-right"></div>
       <div className="component-screw-bottom-left"></div>

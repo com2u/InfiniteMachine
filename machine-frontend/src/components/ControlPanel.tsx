@@ -3,6 +3,8 @@ import BatteryDisplay from './BatteryDisplay';
 import GeneratorDisplay from './GeneratorDisplay';
 import GaugeDisplay from './GaugeDisplay';
 import SliderControl from './SliderControl';
+import ChemicalIngredient from './ChemicalIngredient';
+import MixerControl from './MixerControl';
 import './ControlPanel.css';
 import './MachineComponent.css';
 
@@ -21,6 +23,21 @@ interface SystemData {
       status: string;
       powerLevel: number;
     }>;
+    chemicals: Array<{
+      id: number;
+      status: string;
+      fillLevel: number;
+      purity: number;
+      outputLevel?: number;
+    }>;
+    mixer: {
+      active: boolean;
+      chem1Amount: number;
+      chem2Amount: number;
+      chem3Amount: number;
+      maxThroughput: number;
+      mixtureQuality: number;
+    };
     sensors: {
       pressure: number;
       temperature: number;
@@ -42,7 +59,7 @@ interface ControlPanelProps {
 
 interface ComponentPosition {
   id: string;
-  type: 'battery' | 'generator' | 'gauge' | 'slider';
+  type: 'battery' | 'generator' | 'gauge' | 'slider' | 'chemical' | 'mixer';
   x: number;
   y: number;
   width: number;
@@ -65,12 +82,75 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
   
   // Define fixed positions for components with improved alignment
   const components: ComponentPosition[] = [
+    // Row 0: Chemical Components
+    {
+      id: 'chemical1',
+      type: 'chemical',
+      x: 50,
+      y: 50,
+      width: 250,
+      height: 300,
+      props: {
+        isActive: true,
+        id: "1",
+        fillLevel: 75,
+        purity: 95,
+        color: "#3498db"
+      }
+    },
+    {
+      id: 'chemical2',
+      type: 'chemical',
+      x: 350,
+      y: 50,
+      width: 250,
+      height: 300,
+      props: {
+        isActive: true,
+        id: "2",
+        fillLevel: 60,
+        purity: 90,
+        color: "#e74c3c"
+      }
+    },
+    {
+      id: 'chemical3',
+      type: 'chemical',
+      x: 650,
+      y: 50,
+      width: 250,
+      height: 300,
+      props: {
+        isActive: true,
+        id: "3",
+        fillLevel: 45,
+        purity: 85,
+        color: "#2ecc71"
+      }
+    },
+    {
+      id: 'mixer',
+      type: 'mixer',
+      x: 950,
+      y: 50,
+      width: 300,
+      height: 300,
+      props: {
+        isActive: true,
+        chem1Amount: 50,
+        chem2Amount: 50,
+        chem3Amount: 50,
+        maxThroughput: 200,
+        mixtureQuality: 0
+      }
+    },
+    
     // Row 1: Generators
     {
       id: 'generator1',
       type: 'generator',
       x: 50,
-      y: 150,
+      y: 400,
       width: 250,
       height: 380,
       props: {
@@ -432,12 +512,50 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
     });
   };
   
+  // Handle chemical toggle
+  const handleChemicalToggle = (chemicalId: string) => {
+    const backendKey = `chemical${chemicalId}.active`;
+    const currentValue = backendData?.[backendKey];
+    
+    if (currentValue !== undefined) {
+      // Toggle the value by sending the opposite of the current value
+      onUpdateBackend(backendKey, !currentValue);
+    }
+  };
+  
+  // Handle chemical fill level change
+  const handleChemicalFillLevelChange = (chemicalId: string, value: number) => {
+    const backendKey = `chemical${chemicalId}.value`;
+    onUpdateBackend(backendKey, value);
+  };
+  
+  // Handle chemical output level change
+  const handleChemicalOutputChange = (chemicalId: string, value: number) => {
+    const backendKey = `chemical${chemicalId}.output`;
+    onUpdateBackend(backendKey, value);
+  };
+  
+  // Handle mixer toggle
+  const handleMixerToggle = () => {
+    const backendKey = 'mixer.active';
+    const currentValue = backendData?.[backendKey];
+    
+    if (currentValue !== undefined) {
+      // Toggle the value by sending the opposite of the current value
+      onUpdateBackend(backendKey, !currentValue);
+    }
+  };
+  
+  // This function is no longer needed as proportions are calculated in the mixer component
+  // based on the chemical output levels
+  
   // Handle generator toggle
   const handleGeneratorToggle = (generatorId: string) => {
     const backendKey = `generator${generatorId}.active`;
     const currentValue = backendData?.[backendKey];
     
     if (currentValue !== undefined) {
+      // Toggle the value by sending the opposite of the current value
       onUpdateBackend(backendKey, !currentValue);
     }
   };
@@ -457,6 +575,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
     const currentValue = backendData?.[backendKey];
     
     if (currentValue !== undefined) {
+      // Toggle the value by sending the opposite of the current value
       onUpdateBackend(backendKey, !currentValue);
     }
   };
@@ -473,6 +592,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
     const currentValue = backendData?.['aggregator.active'];
     
     if (currentValue !== undefined) {
+      // Toggle the value by sending the opposite of the current value
       onUpdateBackend('aggregator.active', !currentValue);
     }
   };
@@ -482,6 +602,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
     const currentValue = backendData?.['producer.active'];
     
     if (currentValue !== undefined) {
+      // Toggle the value by sending the opposite of the current value
       onUpdateBackend('producer.active', !currentValue);
     }
   };
@@ -492,6 +613,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
     const currentValue = backendData?.[backendKey];
     
     if (currentValue !== undefined) {
+      // Toggle the value by sending the opposite of the current value
       onUpdateBackend(backendKey, !currentValue);
     }
   };
@@ -502,6 +624,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
     const currentValue = backendData?.[backendKey];
     
     if (currentValue !== undefined) {
+      // Toggle the value by sending the opposite of the current value
       onUpdateBackend(backendKey, !currentValue);
     }
   };
@@ -550,6 +673,40 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
               height={height}
               isActive={backendData?.[`${id}.active`] !== false}
               onToggle={() => handleGaugeToggle(id)}
+            />
+          </div>
+        );
+      case 'chemical':
+        return (
+          <div key={id} className="fixed-component" style={style}>
+            <ChemicalIngredient 
+              {...props} 
+              width={width} 
+              height={height}
+              isActive={backendData?.[`chemical${props.id}.active`] !== false}
+              fillLevel={backendData?.[`chemical${props.id}.value`] || props.fillLevel}
+              purity={backendData?.[`chemical${props.id}.purity`] || props.purity}
+              outputLevel={backendData?.[`chemical${props.id}.output`] || 50}
+              onToggle={() => handleChemicalToggle(props.id)}
+              onFillLevelChange={(value: number) => handleChemicalFillLevelChange(props.id, value)}
+              onOutputChange={(value: number) => handleChemicalOutputChange(props.id, value)}
+            />
+          </div>
+        );
+      case 'mixer':
+        return (
+          <div key={id} className="fixed-component" style={style}>
+            <MixerControl 
+              {...props} 
+              width={width} 
+              height={height}
+              isActive={backendData?.['mixer.active'] !== false}
+              chem1Amount={backendData?.[`chemical1.output`] || 50}
+              chem2Amount={backendData?.[`chemical2.output`] || 50}
+              chem3Amount={backendData?.[`chemical3.output`] || 50}
+              maxThroughput={backendData?.['mixer.max_throughput'] || 200}
+              mixtureQuality={backendData?.['mixer.mixture_quality'] || props.mixtureQuality}
+              onToggle={handleMixerToggle}
             />
           </div>
         );

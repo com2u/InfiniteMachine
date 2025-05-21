@@ -1,6 +1,7 @@
 import React from 'react';
 import './BatteryDisplay.css';
 import './MachineComponent.css';
+import LedDisplay from './LedDisplay';
 
 interface BatteryDisplayProps {
   isActive: boolean;
@@ -83,11 +84,10 @@ const BatteryDisplay: React.FC<BatteryDisplayProps> = ({
       className="machine-component battery-display" 
       style={width && height ? { width, height } : undefined}
     >
-      <div 
-        className={`component-led ${statusClass}`}
-        onClick={onToggle}
-        style={{ cursor: onToggle ? 'pointer' : 'default' }}
-      ></div>
+      <LedDisplay 
+        isActive={isActive}
+        onToggle={onToggle}
+      />
       <div className="component-screw-top-left"></div>
       <div className="component-screw-top-right"></div>
       <div className="component-screw-bottom-left"></div>

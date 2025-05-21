@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './GaugeDisplay.css';
 import './MachineComponent.css';
+import LedDisplay from './LedDisplay';
 
 interface GaugeDisplayProps {
   title?: string;
@@ -73,11 +74,10 @@ const GaugeDisplay: React.FC<GaugeDisplayProps> = ({
       className="machine-component gauge-display" 
       style={width && height ? { width, height } : undefined}
     >
-      <div 
-        className={`component-led ${statusClass}`}
-        onClick={onToggle}
-        style={{ cursor: onToggle ? 'pointer' : 'default' }}
-      ></div>
+      <LedDisplay 
+        isActive={isActive}
+        onToggle={onToggle}
+      />
       <div className="component-screw-top-left"></div>
       <div className="component-screw-top-right"></div>
       <div className="component-screw-bottom-left"></div>

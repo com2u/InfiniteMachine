@@ -15,15 +15,15 @@ const LedDisplay: React.FC<LedDisplayProps> = ({ isActive, onToggle, size = 24 }
     borderRadius: size / 2,
     border: `2px solid ${isActive ? '#10b981' : '#ef4444'}`,
     boxShadow: `0 0 10px 2px ${isActive ? 'rgba(74, 222, 128, 0.8)' : 'rgba(239, 68, 68, 0.7)'}`,
-    cursor: onToggle ? 'pointer' : 'default'
+    cursor: onToggle ? 'pointer' : 'default',
+    backgroundColor: isActive ? '#10b981' : '#ef4444'
   };
 
   return (
-    <Switch
-      checked={isActive}
-      onChange={onToggle}
+    <div 
+      onClick={onToggle}
       style={switchStyle}
-      className="ant-switch"
+      className="led-display"
       title={onToggle ? (isActive ? "Click to deactivate" : "Click to activate") : (isActive ? "Active" : "Inactive")}
     />
   );

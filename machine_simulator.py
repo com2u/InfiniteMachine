@@ -11,6 +11,80 @@ class MachineSimulator:
         self.machine_structure = {
             "components": [
                 {
+                    "id": "chemical1",
+                    "type": "chemical",
+                    "name": "CHEM 1",
+                    "description": "Chemical Ingredient A",
+                    "category": "laboratory",
+                    "properties": [
+                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
+                        {"key": "value", "type": "slider", "label": "Fill Level", "min": 0, "max": 100, "step": 1, "controllable": True},
+                        {"key": "purity", "type": "gauge", "label": "Purity", "min": 0, "max": 100, "units": "%", "controllable": False},
+                        {"key": "output", "type": "slider", "label": "Output Level", "min": 0, "max": 100, "step": 1, "controllable": True}
+                    ],
+                    "visualization": {
+                        "type": "chemical",
+                        "width": 80,
+                        "height": 80,
+                        "color": "#3498db"
+                    }
+                },
+                {
+                    "id": "chemical2",
+                    "type": "chemical",
+                    "name": "CHEM 2",
+                    "description": "Chemical Ingredient B",
+                    "category": "laboratory",
+                    "properties": [
+                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
+                        {"key": "value", "type": "slider", "label": "Fill Level", "min": 0, "max": 100, "step": 1, "controllable": True},
+                        {"key": "purity", "type": "gauge", "label": "Purity", "min": 0, "max": 100, "units": "%", "controllable": False},
+                        {"key": "output", "type": "slider", "label": "Output Level", "min": 0, "max": 100, "step": 1, "controllable": True}
+                    ],
+                    "visualization": {
+                        "type": "chemical",
+                        "width": 80,
+                        "height": 80,
+                        "color": "#e74c3c"
+                    }
+                },
+                {
+                    "id": "chemical3",
+                    "type": "chemical",
+                    "name": "CHEM 3",
+                    "description": "Chemical Ingredient C",
+                    "category": "laboratory",
+                    "properties": [
+                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
+                        {"key": "value", "type": "slider", "label": "Fill Level", "min": 0, "max": 100, "step": 1, "controllable": True},
+                        {"key": "purity", "type": "gauge", "label": "Purity", "min": 0, "max": 100, "units": "%", "controllable": False},
+                        {"key": "output", "type": "slider", "label": "Output Level", "min": 0, "max": 100, "step": 1, "controllable": True}
+                    ],
+                    "visualization": {
+                        "type": "chemical",
+                        "width": 80,
+                        "height": 80,
+                        "color": "#2ecc71"
+                    }
+                },
+                {
+                    "id": "mixer",
+                    "type": "mixer",
+                    "name": "MIXER",
+                    "description": "Chemical Mixing System",
+                    "category": "laboratory",
+                    "properties": [
+                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
+                        {"key": "max_throughput", "type": "slider", "label": "Max Throughput", "min": 50, "max": 300, "step": 10, "controllable": True},
+                        {"key": "mixture_quality", "type": "gauge", "label": "Mixture Quality", "min": 0, "max": 100, "units": "%", "controllable": False}
+                    ],
+                    "visualization": {
+                        "type": "mixer",
+                        "width": 120,
+                        "height": 100
+                    }
+                },
+                {
                     "id": "generator1",
                     "type": "generator",
                     "name": "GEN 1",
@@ -206,6 +280,24 @@ class MachineSimulator:
         
         # Initialize the machine state variables
         self.variables = {
+            # Chemical components
+            "chemical1.value": 75,
+            "chemical1.purity": 95,
+            "chemical1.active": True,
+            "chemical1.output": 50,
+            "chemical2.value": 60,
+            "chemical2.purity": 90,
+            "chemical2.active": True,
+            "chemical2.output": 50,
+            "chemical3.value": 45,
+            "chemical3.purity": 85,
+            "chemical3.active": True,
+            "chemical3.output": 50,
+            "mixer.active": True,
+            "mixer.max_throughput": 200,
+            "mixer.mixture_quality": 0,
+            
+            # Generator components
             "generator1.value": 5,
             "generator1.temp": 20.1,
             "generator1.active": True,
@@ -215,6 +307,8 @@ class MachineSimulator:
             "generator3.value": 4,
             "generator3.temp": 19.9,
             "generator3.active": True,
+            
+            # Battery components
             "akku1.capacity": 10000,
             "akku1.value": 0,
             "akku1.active": True,
@@ -224,6 +318,8 @@ class MachineSimulator:
             "akku3.capacity": 10000,
             "akku3.value": 0,
             "akku3.active": True,
+            
+            # Other components
             "aggregator.value": 0,
             "aggregator.active": True,
             "producer.consumption": 20,
@@ -258,6 +354,9 @@ class MachineSimulator:
                 return True
                 
             if key in self.variables:
+                # Store the old value for logging before making any changes
+                old_value = self.variables[key]
+                
                 # Type conversion for values coming from frontend (usually strings)
                 current_type = type(self.variables[key])
                 try:
@@ -269,9 +368,6 @@ class MachineSimulator:
                         self.variables[key] = float(value)
                     else:
                         self.variables[key] = value # Fallback for other types
-                    
-                    # Store the old value for logging
-                    old_value = self.variables[key]
                     
                     # Apply constraints for specific variables
                     if key == "generator1.value" or key == "generator2.value" or key == "generator3.value":
@@ -294,6 +390,101 @@ class MachineSimulator:
 
     def update_components(self):
         with self.lock:
+            # Chemical components
+            # Chemical 1
+            if not self.variables["chemical1.active"]:
+                # Slowly decrease fill level when inactive
+                if self.variables["chemical1.value"] > 0:
+                    self.variables["chemical1.value"] -= 0.2
+                    self.variables["chemical1.value"] = max(0, round(self.variables["chemical1.value"], 1))
+            else:
+                # Randomly fluctuate purity when active
+                purity_change = random.uniform(-0.5, 0.5)
+                self.variables["chemical1.purity"] += purity_change
+                self.variables["chemical1.purity"] = max(70, min(100, round(self.variables["chemical1.purity"], 1)))
+            
+            # Chemical 2
+            if not self.variables["chemical2.active"]:
+                # Slowly decrease fill level when inactive
+                if self.variables["chemical2.value"] > 0:
+                    self.variables["chemical2.value"] -= 0.2
+                    self.variables["chemical2.value"] = max(0, round(self.variables["chemical2.value"], 1))
+            else:
+                # Randomly fluctuate purity when active
+                purity_change = random.uniform(-0.5, 0.5)
+                self.variables["chemical2.purity"] += purity_change
+                self.variables["chemical2.purity"] = max(70, min(100, round(self.variables["chemical2.purity"], 1)))
+            
+            # Chemical 3
+            if not self.variables["chemical3.active"]:
+                # Slowly decrease fill level when inactive
+                if self.variables["chemical3.value"] > 0:
+                    self.variables["chemical3.value"] -= 0.2
+                    self.variables["chemical3.value"] = max(0, round(self.variables["chemical3.value"], 1))
+            else:
+                # Randomly fluctuate purity when active
+                purity_change = random.uniform(-0.5, 0.5)
+                self.variables["chemical3.purity"] += purity_change
+                self.variables["chemical3.purity"] = max(70, min(100, round(self.variables["chemical3.purity"], 1)))
+            
+            # Mixer
+            if self.variables["mixer.active"]:
+                # Calculate mixture quality based on chemical outputs and purities
+                # Only consider active chemicals
+                total_output = 0
+                weighted_purity = 0
+                
+                if self.variables["chemical1.active"] and self.variables["chemical1.value"] > 10:
+                    chem1_output = self.variables["chemical1.output"]
+                    total_output += chem1_output
+                    weighted_purity += chem1_output * self.variables["chemical1.purity"]
+                
+                if self.variables["chemical2.active"] and self.variables["chemical2.value"] > 10:
+                    chem2_output = self.variables["chemical2.output"]
+                    total_output += chem2_output
+                    weighted_purity += chem2_output * self.variables["chemical2.purity"]
+                
+                if self.variables["chemical3.active"] and self.variables["chemical3.value"] > 10:
+                    chem3_output = self.variables["chemical3.output"]
+                    total_output += chem3_output
+                    weighted_purity += chem3_output * self.variables["chemical3.purity"]
+                
+                # Calculate final mixture quality
+                if total_output > 0:
+                    # Base quality on weighted average of purities
+                    base_quality = weighted_purity / total_output
+                    
+                    # Penalty if total output exceeds max throughput
+                    max_throughput = self.variables["mixer.max_throughput"]
+                    throughput_penalty = max(0, (total_output - max_throughput) / 10)
+                    
+                    # Final quality with some randomness
+                    quality = base_quality - throughput_penalty + random.uniform(-2, 2)
+                    self.variables["mixer.mixture_quality"] = max(0, min(100, round(quality, 1)))
+                else:
+                    self.variables["mixer.mixture_quality"] = 0
+                
+                # Consume chemicals based on their output levels
+                if total_output > 0:
+                    consumption_rate = 0.1  # Base consumption rate per cycle
+                    
+                    if self.variables["chemical1.active"] and self.variables["chemical1.value"] > 0:
+                        consumption = (self.variables["chemical1.output"] / 100) * consumption_rate
+                        self.variables["chemical1.value"] -= consumption
+                        self.variables["chemical1.value"] = max(0, round(self.variables["chemical1.value"], 1))
+                    
+                    if self.variables["chemical2.active"] and self.variables["chemical2.value"] > 0:
+                        consumption = (self.variables["chemical2.output"] / 100) * consumption_rate
+                        self.variables["chemical2.value"] -= consumption
+                        self.variables["chemical2.value"] = max(0, round(self.variables["chemical2.value"], 1))
+                    
+                    if self.variables["chemical3.active"] and self.variables["chemical3.value"] > 0:
+                        consumption = (self.variables["chemical3.output"] / 100) * consumption_rate
+                        self.variables["chemical3.value"] -= consumption
+                        self.variables["chemical3.value"] = max(0, round(self.variables["chemical3.value"], 1))
+            else:
+                self.variables["mixer.mixture_quality"] = 0
+            
             # Generator 1
             if not self.variables["generator1.active"]:
                 self.variables["generator1.value"] = 0 # Keep it at user set value if active, otherwise 0
@@ -478,11 +669,14 @@ def update_vars():
     for key, value in data.items():
         if simulator.update_variable(key, value):
             updated_keys.append(key)
-            # Special handling for generator values if they become 0 due to inactivity
+            # Special handling for component values if they become inactive
             if key.endswith(".active") and value is False:
                 if key.startswith("generator"):
-                    gen_value_key = key.replace(".active", ".value")
-                    simulator.update_variable(gen_value_key, 0)
+                    value_key = key.replace(".active", ".value")
+                    simulator.update_variable(value_key, 0)
+                elif key.startswith("chemical"):
+                    # Don't set chemical value to 0 immediately, let it decrease gradually
+                    pass
 
 
     if updated_keys:

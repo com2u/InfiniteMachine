@@ -17,6 +17,21 @@ interface SystemData {
       status: string;
       powerLevel: number;
     }>;
+    chemicals: Array<{
+      id: number;
+      status: string;
+      fillLevel: number;
+      purity: number;
+      outputLevel?: number;
+    }>;
+    mixer: {
+      active: boolean;
+      chem1Amount: number;
+      chem2Amount: number;
+      chem3Amount: number;
+      maxThroughput: number;
+      mixtureQuality: number;
+    };
     sensors: {
       pressure: number;
       temperature: number;
@@ -115,6 +130,37 @@ function App() {
               powerLevel: calculateGeneratorPowerLevel(data['generator3.value'])
             }
           ],
+          chemicals: [
+            {
+              id: 1,
+              status: data['chemical1.active'] ? 'active' : 'inactive',
+              fillLevel: data['chemical1.value'],
+              purity: data['chemical1.purity'],
+              outputLevel: data['chemical1.output'] || 50
+            },
+            {
+              id: 2,
+              status: data['chemical2.active'] ? 'active' : 'inactive',
+              fillLevel: data['chemical2.value'],
+              purity: data['chemical2.purity'],
+              outputLevel: data['chemical2.output'] || 50
+            },
+            {
+              id: 3,
+              status: data['chemical3.active'] ? 'active' : 'inactive',
+              fillLevel: data['chemical3.value'],
+              purity: data['chemical3.purity'],
+              outputLevel: data['chemical3.output'] || 50
+            }
+          ],
+          mixer: {
+            active: data['mixer.active'],
+            chem1Amount: data['chemical1.output'] || 50,
+            chem2Amount: data['chemical2.output'] || 50,
+            chem3Amount: data['chemical3.output'] || 50,
+            maxThroughput: data['mixer.max_throughput'] || 200,
+            mixtureQuality: data['mixer.mixture_quality']
+          },
           sensors: {
             pressure: 75, // These could be mapped to actual backend values if available
             temperature: Math.round(data['room.temp']),
