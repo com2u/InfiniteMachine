@@ -5,6 +5,11 @@ import GaugeDisplay from './GaugeDisplay';
 import SliderControl from './SliderControl';
 import ChemicalIngredient from './ChemicalIngredient';
 import MixerControl from './MixerControl';
+import EnvironmentDisplay from './EnvironmentDisplay';
+import ProductCounterDisplay from './ProductCounterDisplay';
+import ProducerDisplay from './ProducerDisplay';
+import AggregatorDisplay from './AggregatorDisplay';
+import SystemDisplay from './SystemDisplay';
 import './ControlPanel.css';
 import './MachineComponent.css';
 
@@ -59,7 +64,7 @@ interface ControlPanelProps {
 
 interface ComponentPosition {
   id: string;
-  type: 'battery' | 'generator' | 'gauge' | 'slider' | 'chemical' | 'mixer';
+  type: string;
   x: number;
   y: number;
   width: number;
@@ -70,8 +75,76 @@ interface ComponentPosition {
 interface Connection {
   from: string;
   to: string;
-  type: 'power' | 'control' | 'data';
+  type: string;
   status: 'active' | 'warning' | 'critical' | 'inactive';
+}
+
+// Define the machine structure interface for the API response
+interface MachineComponentProperty {
+  key: string;
+  type: string;
+  label: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  units?: string;
+  controllable?: boolean;
+  max_key?: string;
+  digits?: number;
+}
+
+interface MachineComponentVisualization {
+  type: string;
+  width?: number;
+  height?: number;
+  color?: string;
+  source_key?: string;
+  label?: string;
+  description?: string;
+  thresholds?: Array<{
+    max?: number;
+    label: string;
+  }>;
+}
+
+interface MachineComponentPosition {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface MachineComponent {
+  id: string;
+  type: string;
+  name: string;
+  description: string;
+  category: string;
+  properties: MachineComponentProperty[];
+  visualization: MachineComponentVisualization;
+  position: MachineComponentPosition;
+  ui_props?: any;
+}
+
+interface MachineConnection {
+  from: string;
+  to: string;
+  type: string;
+}
+
+interface MachineStructureData {
+  components: MachineComponent[];
+  layout: {
+    grid: {
+      columns: {
+        sm: number;
+        md: number;
+        lg: number;
+        xl: number;
+      };
+    };
+  };
+  connections: MachineConnection[];
 }
 
 const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, onUpdateBackend }) => {
@@ -79,311 +152,162 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
   const [systemLoad, setSystemLoad] = useState(78);
   const [powerOutput, setPowerOutput] = useState(1.2);
   const [efficiency, setEfficiency] = useState(85);
+  const [components, setComponents] = useState<ComponentPosition[]>([]);
+  const [connections, setConnections] = useState<Connection[]>([]);
   
-  // Define fixed positions for components with improved alignment
-  const components: ComponentPosition[] = [
-    // Row 0: Chemical Components
-    {
-      id: 'chemical1',
-      type: 'chemical',
-      x: 50,
-      y: 50,
-      width: 250,
-      height: 300,
-      props: {
-        isActive: true,
-        id: "1",
-        fillLevel: 75,
-        purity: 95,
-        color: "#3498db"
+  // Fetch machine structure from backend API
+  useEffect(() => {
+    const fetchMachineStructure = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/structure');
+        
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.statusText}`);
+        }
+        
+        const data = await response.json() as MachineStructureData;
+        
+        // Create components from machine structure
+        let newComponents: ComponentPosition[] = data.components.map((component) => {
+          // Map component properties to props object
+          const props: any = {
+            ...component.ui_props
+          };
+          
+          // Add title and description
+          props.title = component.name;
+          props.description = component.description;
+          
+          // Add properties from component definition
+          component.properties.forEach((prop) => {
+            if (prop.type === 'slider') {
+              props.min = prop.min;
+              props.max = prop.max;
+              props.step = prop.step;
+            }
+            if (prop.type === 'gauge') {
+              props.min = prop.min;
+              props.max = prop.max;
+              props.unit = prop.units;
+            }
+          });
+          
+          // Map component type
+          let type = component.type;
+          if (component.id.startsWith('akku')) {
+            type = 'battery';
+          }
+          
+          return {
+            id: component.id,
+            type,
+            x: component.position?.x || 0,
+            y: component.position?.y || 0,
+            width: component.position?.width || 250,
+            height: component.position?.height || 300,
+            props
+          };
+        });
+        
+        setComponents(newComponents);
+        
+        // Create connections from machine structure
+        const newConnections: Connection[] = data.connections.map((connection) => {
+          return {
+            from: connection.from,
+            to: connection.to,
+            type: connection.type,
+            status: 'inactive' // Default status, will be updated based on component active state
+          };
+        });
+        
+        setConnections(newConnections);
+      } catch (err) {
+        console.error('Error fetching machine structure:', err);
       }
-    },
-    {
-      id: 'chemical2',
-      type: 'chemical',
-      x: 350,
-      y: 50,
-      width: 250,
-      height: 300,
-      props: {
-        isActive: true,
-        id: "2",
-        fillLevel: 60,
-        purity: 90,
-        color: "#e74c3c"
-      }
-    },
-    {
-      id: 'chemical3',
-      type: 'chemical',
-      x: 650,
-      y: 50,
-      width: 250,
-      height: 300,
-      props: {
-        isActive: true,
-        id: "3",
-        fillLevel: 45,
-        purity: 85,
-        color: "#2ecc71"
-      }
-    },
-    {
-      id: 'mixer',
-      type: 'mixer',
-      x: 950,
-      y: 50,
-      width: 300,
-      height: 300,
-      props: {
-        isActive: true,
-        chem1Amount: 50,
-        chem2Amount: 50,
-        chem3Amount: 50,
-        maxThroughput: 200,
-        mixtureQuality: 0
-      }
-    },
+    };
     
-    // Row 1: Generators
-    {
-      id: 'generator1',
-      type: 'generator',
-      x: 50,
-      y: 400,
-      width: 250,
-      height: 380,
-      props: {
-        isActive: true,
-        id: "1",
-        powerLevel: 75
-      }
-    },
-    {
-      id: 'generator2',
-      type: 'generator',
-      x: 350,
-      y: 150,
-      width: 250,
-      height: 380,
-      props: {
-        isActive: true,
-        id: "2",
-        powerLevel: 65
-      }
-    },
-    {
-      id: 'generator3',
-      type: 'generator',
-      x: 650,
-      y: 150,
-      width: 250,
-      height: 380,
-      props: {
-        isActive: false,
-        id: "3",
-        powerLevel: 0
-      }
-    },
-    
-    // Row 2: Batteries (Akku)
-    {
-      id: 'battery1',
-      type: 'battery',
-      x: 50,
-      y: 580,
-      width: 250,
-      height: 380,
-      props: {
-        isActive: true,
-        id: "1",
-        powerLevel: 87
-      }
-    },
-    {
-      id: 'battery2',
-      type: 'battery',
-      x: 350,
-      y: 580,
-      width: 250,
-      height: 380,
-      props: {
-        isActive: true,
-        id: "2",
-        powerLevel: 65
-      }
-    },
-    {
-      id: 'battery3',
-      type: 'battery',
-      x: 650,
-      y: 580,
-      width: 250,
-      height: 380,
-      props: {
-        isActive: false,
-        id: "3",
-        powerLevel: 30
-      }
-    },
-    
-    // Row 3: Gauges
-    {
-      id: 'pressure-gauge',
-      type: 'gauge',
-      x: 50,
-      y: 1010,
-      width: 250,
-      height: 300,
-      props: {
-        title: 'PRESSURE',
-        value: 75,
-        min: 0,
-        max: 100,
-        unit: 'BAR'
-      }
-    },
-    {
-      id: 'temperature-gauge',
-      type: 'gauge',
-      x: 350,
-      y: 1010,
-      width: 250,
-      height: 300,
-      props: {
-        title: 'TEMPERATURE',
-        value: 65,
-        min: 0,
-        max: 150,
-        unit: '°C'
-      }
-    },
-    {
-      id: 'flow-gauge',
-      type: 'gauge',
-      x: 650,
-      y: 1010,
-      width: 250,
-      height: 300,
-      props: {
-        title: 'FLOW RATE',
-        value: 42,
-        min: 0,
-        max: 100,
-        unit: 'L/s'
-      }
-    },
-    
-    // Row 4: Sliders
-    {
-      id: 'power-slider',
-      type: 'slider',
-      x: 50,
-      y: 1360,
-      width: 250,
-      height: 300,
-      props: {
-        title: 'POWER',
-        min: 0,
-        max: 100,
-        value: 65,
-        step: 5
-      }
-    },
-    {
-      id: 'flow-slider',
-      type: 'slider',
-      x: 350,
-      y: 1360,
-      width: 250,
-      height: 300,
-      props: {
-        title: 'FLOW RATE',
-        min: 0,
-        max: 100,
-        value: 50,
-        step: 5
-      }
-    },
-    {
-      id: 'pressure-slider',
-      type: 'slider',
-      x: 650,
-      y: 1360,
-      width: 250,
-      height: 300,
-      props: {
-        title: 'PRESSURE',
-        min: 0,
-        max: 100,
-        value: 70,
-        step: 5
-      }
-    }
-  ];
+    fetchMachineStructure();
+  }, []);
   
-  // Define connections between components
-  const connections: Connection[] = [
-    // Generator to Battery (Akku) connections
-    {
-      from: 'generator1',
-      to: 'battery1',
-      type: 'power',
-      status: 'active'
-    },
-    {
-      from: 'generator2',
-      to: 'battery2',
-      type: 'power',
-      status: 'active'
-    },
-    {
-      from: 'generator3',
-      to: 'battery3',
-      type: 'power',
-      status: 'inactive'
-    },
-    
-    // Battery (Akku) to Gauge (aggregator) connections
-    {
-      from: 'battery1',
-      to: 'pressure-gauge',
-      type: 'data',
-      status: 'active'
-    },
-    {
-      from: 'battery2',
-      to: 'temperature-gauge',
-      type: 'data',
-      status: 'active'
-    },
-    {
-      from: 'battery3',
-      to: 'flow-gauge',
-      type: 'data',
-      status: 'inactive'
-    },
-    
-    // Gauge (aggregator) to Slider (Producer) connections
-    {
-      from: 'pressure-gauge',
-      to: 'power-slider',
-      type: 'control',
-      status: 'active'
-    },
-    {
-      from: 'temperature-gauge',
-      to: 'flow-slider',
-      type: 'control',
-      status: 'active'
-    },
-    {
-      from: 'flow-gauge',
-      to: 'pressure-slider',
-      type: 'control',
-      status: 'inactive'
+  // Update component values from backend data
+  useEffect(() => {
+    if (backendData && components.length > 0) {
+      const updatedComponents = [...components];
+      
+      updatedComponents.forEach(component => {
+        // Update component props based on backend data
+        if (component.type === 'battery') {
+          component.props.isActive = backendData[`${component.id}.active`] || false;
+          component.props.powerLevel = calculatePowerLevel(
+            backendData[`${component.id}.value`] || 0,
+            backendData[`${component.id}.capacity`] || 100
+          );
+        }
+        else if (component.type === 'generator') {
+          component.props.isActive = backendData[`${component.id}.active`] || false;
+          component.props.powerLevel = calculateGeneratorPowerLevel(backendData[`${component.id}.value`] || 0);
+        }
+        else if (component.type === 'gauge') {
+          component.props.isActive = backendData[`${component.id}.active`] || false;
+          component.props.value = backendData[`${component.id}.value`] || 0;
+        }
+        else if (component.type === 'slider') {
+          component.props.isActive = backendData[`${component.id}.active`] || false;
+          component.props.value = backendData[`${component.id}.value`] || 0;
+        }
+        else if (component.type === 'chemical') {
+          component.props.isActive = backendData[`${component.id}.active`] || false;
+          component.props.fillLevel = backendData[`${component.id}.value`] || 0;
+          component.props.purity = backendData[`${component.id}.purity`] || 0;
+          component.props.outputLevel = backendData[`${component.id}.output`] || 0;
+        }
+        else if (component.type === 'mixer') {
+          component.props.isActive = backendData[`${component.id}.active`] || false;
+          component.props.chem1Amount = backendData[`chemical1.output`] || 0;
+          component.props.chem2Amount = backendData[`chemical2.output`] || 0;
+          component.props.chem3Amount = backendData[`chemical3.output`] || 0;
+          component.props.maxThroughput = backendData[`${component.id}.max_throughput`] || 0;
+          component.props.mixtureQuality = backendData[`${component.id}.mixture_quality`] || 0;
+        }
+      });
+      
+      setComponents(updatedComponents);
+      
+      // Update connection status based on component active state
+      const updatedConnections = [...connections];
+      updatedConnections.forEach(connection => {
+        const fromComponent = components.find(c => c.id === connection.from);
+        const toComponent = components.find(c => c.id === connection.to);
+        
+        if (fromComponent && toComponent) {
+          const fromIsActive = backendData[`${fromComponent.id}.active`] !== false;
+          const toIsActive = backendData[`${toComponent.id}.active`] !== false;
+          
+          if (fromIsActive && toIsActive) {
+            connection.status = 'active';
+          } else if (fromIsActive || toIsActive) {
+            connection.status = 'warning';
+          } else {
+            connection.status = 'inactive';
+          }
+        }
+      });
+      
+      setConnections(updatedConnections);
     }
-  ];
+  }, [backendData, components.length]);
+  
+  // Helper function to calculate battery power level as percentage
+  const calculatePowerLevel = (value: number, capacity: number): number => {
+    if (!capacity) return 0;
+    return Math.round((value / capacity) * 100);
+  };
+  
+  // Helper function to convert generator value (0-10) to percentage (0-100)
+  const calculateGeneratorPowerLevel = (value: number): number => {
+    return Math.round((value / 10) * 100);
+  };
   
   // Render connection lines between components
   const renderConnections = () => {
@@ -554,10 +478,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
     const backendKey = `generator${generatorId}.active`;
     const currentValue = backendData?.[backendKey];
     
-    if (currentValue !== undefined) {
-      // Toggle the value by sending the opposite of the current value
-      onUpdateBackend(backendKey, !currentValue);
-    }
+    // Toggle the value by sending the opposite of the current value
+    onUpdateBackend(backendKey, !currentValue);
   };
   
   // Handle generator power level change
@@ -574,10 +496,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
     const backendKey = `akku${batteryId}.active`;
     const currentValue = backendData?.[backendKey];
     
-    if (currentValue !== undefined) {
-      // Toggle the value by sending the opposite of the current value
-      onUpdateBackend(backendKey, !currentValue);
-    }
+    // Toggle the value by sending the opposite of the current value
+    onUpdateBackend(backendKey, !currentValue);
   };
   
   // Handle producer consumption change
@@ -587,25 +507,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
     onUpdateBackend('producer.consumption', backendValue);
   };
   
-  // Handle aggregator toggle
-  const handleAggregatorToggle = () => {
-    const currentValue = backendData?.['aggregator.active'];
-    
-    if (currentValue !== undefined) {
-      // Toggle the value by sending the opposite of the current value
-      onUpdateBackend('aggregator.active', !currentValue);
-    }
-  };
-  
-  // Handle producer toggle
-  const handleProducerToggle = () => {
-    const currentValue = backendData?.['producer.active'];
-    
-    if (currentValue !== undefined) {
-      // Toggle the value by sending the opposite of the current value
-      onUpdateBackend('producer.active', !currentValue);
-    }
-  };
   
   // Handle gauge toggle
   const handleGaugeToggle = (gaugeId: string) => {
@@ -661,6 +562,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
               height={height}
               onToggle={() => handleGeneratorToggle(props.id)}
               onPowerChange={(value) => handleGeneratorPowerChange(props.id, value)}
+              onAggregatorXChange={(value) => onUpdateBackend('aggregatorX.value', value)}
             />
           </div>
         );
@@ -681,12 +583,13 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
           <div key={id} className="fixed-component" style={style}>
             <ChemicalIngredient 
               {...props} 
+              name={props.title}
               width={width} 
               height={height}
-              isActive={backendData?.[`chemical${props.id}.active`] !== false}
-              fillLevel={backendData?.[`chemical${props.id}.value`] || props.fillLevel}
-              purity={backendData?.[`chemical${props.id}.purity`] || props.purity}
-              outputLevel={backendData?.[`chemical${props.id}.output`] || 50}
+              isActive={backendData?.[`${id}.active`] !== false}
+              fillLevel={backendData?.[`${id}.value`] || props.fillLevel}
+              purity={backendData?.[`${id}.purity`] || props.purity}
+              outputLevel={backendData?.[`${id}.output`] || 50}
               onToggle={() => handleChemicalToggle(props.id)}
               onFillLevelChange={(value: number) => handleChemicalFillLevelChange(props.id, value)}
               onOutputChange={(value: number) => handleChemicalOutputChange(props.id, value)}
@@ -726,6 +629,107 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
               onChange={onChangeHandler}
               isActive={backendData?.[`${id}.active`] !== false}
               onToggle={() => handleSliderToggle(id)}
+            />
+          </div>
+        );
+      case 'environment':
+        return (
+          <div key={id} className="fixed-component" style={style}>
+            <EnvironmentDisplay 
+              isActive={backendData?.[`${id}.active`] !== false}
+              temperature={backendData?.[`${id}.temp`] || 25}
+              title={props.title}
+              description={props.description}
+              width={width}
+              height={height}
+              onToggle={() => {
+                const backendKey = `${id}.active`;
+                const currentValue = backendData?.[backendKey];
+                // Toggle the value by sending the opposite of the current value
+                onUpdateBackend(backendKey, !currentValue);
+              }}
+            />
+          </div>
+        );
+      case 'counter':
+        return (
+          <div key={id} className="fixed-component" style={style}>
+            <ProductCounterDisplay 
+              isActive={backendData?.[`${id}.active`] !== false}
+              count={backendData?.[`${id}.value`] || 0}
+              productionValue={backendData?.[`producer.output`] || 0}
+              title={props.title}
+              description={props.description}
+              width={width}
+              height={height}
+              onToggle={() => {
+                const backendKey = `${id}.active`;
+                const currentValue = backendData?.[backendKey];
+                // Toggle the value by sending the opposite of the current value
+                onUpdateBackend(backendKey, !currentValue);
+              }}
+            />
+          </div>
+        );
+      case 'producer':
+        return (
+          <div key={id} className="fixed-component" style={style}>
+            <ProducerDisplay 
+              isActive={backendData?.[`${id}.active`] !== false}
+              consumption={backendData?.[`${id}.consumption`] || 5}
+              output={backendData?.[`${id}.output`] || 0}
+              title={props.title}
+              description={props.description}
+              width={width}
+              height={height}
+              onToggle={() => {
+                const backendKey = `${id}.active`;
+                const currentValue = backendData?.[backendKey];
+                // Toggle the value by sending the opposite of the current value
+                onUpdateBackend(backendKey, !currentValue);
+              }}
+              onConsumptionChange={(value) => {
+                onUpdateBackend(`${id}.consumption`, value);
+              }}
+            />
+          </div>
+        );
+      case 'aggregator':
+        return (
+          <div key={id} className="fixed-component" style={style}>
+            <AggregatorDisplay 
+              isActive={backendData?.[`${id}.active`] !== false}
+              totalEnergy={backendData?.[`${id}.value`] || 0}
+              title={props.title}
+              description={props.description}
+              width={width}
+              height={height}
+              onToggle={() => {
+                const backendKey = `${id}.active`;
+                const currentValue = backendData?.[backendKey];
+                // Toggle the value by sending the opposite of the current value
+                onUpdateBackend(backendKey, !currentValue);
+              }}
+            />
+          </div>
+        );
+      case 'system':
+        return (
+          <div key={id} className="fixed-component" style={style}>
+            <SystemDisplay 
+              status={systemStatus}
+              isActive={backendData?.[`${id}.active`] !== false}
+              title={props.title}
+              description={props.description}
+              width={width}
+              height={height}
+              onToggle={() => {
+                const backendKey = `${id}.active`;
+                const currentValue = backendData?.[backendKey];
+                // Toggle the value by sending the opposite of the current value
+                onUpdateBackend(backendKey, !currentValue);
+              }}
+              onDebug={() => onUpdateBackend('system.debug', true)}
             />
           </div>
         );
@@ -820,49 +824,31 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
       
       <h1 className="control-panel-title">INFINITE MACHINE CONTROL SYSTEM</h1>
       
-      {/* System status indicators */}
-      <div className="status-indicator">
-        <div className="indicator">
-          <div 
-            className={`indicator-led ${systemStatus.toLowerCase()}`}
-            onClick={() => onUpdateBackend('system.debug', true)}
-            style={{ cursor: 'pointer' }}
-          ></div>
-          <div className="indicator-label">SYSTEM</div>
-        </div>
-        <div className="indicator">
-          <div className="indicator-led active"></div>
-          <div className="indicator-label">POWER</div>
-        </div>
-        <div className="indicator">
-          <div className="indicator-led active"></div>
-          <div className="indicator-label">NETWORK</div>
-        </div>
-      </div>
-      
       {/* System metrics */}
-      <div className="system-status">
-        <div>
-          <div className="system-status-label">SYSTEM LOAD</div>
-          <div className={`system-status-value ${systemStatus.toLowerCase()}`}>{Math.round(systemLoad)}%</div>
+      <div className="system-metrics">
+        <div className="metric">
+          <div className="metric-label">SYSTEM LOAD</div>
+          <div className="metric-value">{systemLoad.toFixed(1)}%</div>
         </div>
-        <div>
-          <div className="system-status-label">POWER OUTPUT</div>
-          <div className="system-status-value">{powerOutput.toFixed(1)} kW</div>
+        <div className="metric">
+          <div className="metric-label">POWER OUTPUT</div>
+          <div className="metric-value">{powerOutput.toFixed(2)} MW</div>
         </div>
-        <div>
-          <div className="system-status-label">EFFICIENCY</div>
-          <div className="system-status-value">{Math.round(efficiency)}%</div>
+        <div className="metric">
+          <div className="metric-label">EFFICIENCY</div>
+          <div className="metric-value">{efficiency.toFixed(1)}%</div>
         </div>
       </div>
       
-      <div className="component-container">
-        {/* Render all components */}
-        {components.map(renderComponent)}
-        
-        {/* Render connections between components */}
-        {renderConnections()}
-      </div>
+
+      
+
+      
+      {/* Render all components */}
+      {components.map(renderComponent)}
+      
+      {/* Render connections between components */}
+      {renderConnections()}
     </div>
   );
 };

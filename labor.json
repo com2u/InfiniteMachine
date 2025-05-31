@@ -1,0 +1,156 @@
+{
+  "components": [
+    {
+      "id": "system",
+      "type": "system",
+      "name": "SYSTEM",
+      "description": "System Status Indicator",
+      "category": "system",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "status", "type": "text", "label": "Status", "controllable": false}
+      ],
+      "visualization": {
+        "type": "status",
+        "thresholds": [
+          {"max": 80, "label": "OPERATIONAL"},
+          {"max": 90, "label": "WARNING"},
+          {"label": "CRITICAL"}
+        ]
+      },
+      "position": {
+        "x": 50,
+        "y": 2400,
+        "width": 250,
+        "height": 300
+      }
+    },
+    {
+      "id": "chemical1",
+      "type": "chemical",
+      "name": "CHEM 1",
+      "description": "Chemical Ingredient A",
+      "category": "laboratory",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "slider", "label": "Fill Level", "min": 0, "max": 100, "step": 1, "controllable": true},
+        {"key": "purity", "type": "gauge", "label": "Purity", "min": 0, "max": 100, "units": "%", "controllable": false},
+        {"key": "output", "type": "slider", "label": "Output Level", "min": 0, "max": 100, "step": 1, "controllable": true}
+      ],
+      "visualization": {
+        "type": "chemical",
+        "width": 80,
+        "height": 80,
+        "color": "#3498db"
+      },
+      "position": {
+        "x": 50,
+        "y": 50,
+        "width": 250,
+        "height": 300
+      },
+      "ui_props": {
+        "id": "1",
+        "fillLevel": 75,
+        "purity": 95,
+        "color": "#3498db"
+      }
+    },
+    {
+      "id": "chemical2",
+      "type": "chemical",
+      "name": "CHEM 2",
+      "description": "Chemical Ingredient B",
+      "category": "laboratory",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "slider", "label": "Fill Level", "min": 0, "max": 100, "step": 1, "controllable": true},
+        {"key": "purity", "type": "gauge", "label": "Purity", "min": 0, "max": 100, "units": "%", "controllable": false},
+        {"key": "output", "type": "slider", "label": "Output Level", "min": 0, "max": 100, "step": 1, "controllable": true}
+      ],
+      "visualization": {
+        "type": "chemical",
+        "width": 80,
+        "height": 80,
+        "color": "#e74c3c"
+      },
+      "position": {
+        "x": 350,
+        "y": 50,
+        "width": 250,
+        "height": 300
+      },
+      "ui_props": {
+        "id": "2",
+        "fillLevel": 60,
+        "purity": 90,
+        "color": "#e74c3c"
+      }
+    },
+    {
+      "id": "chemical3",
+      "type": "chemical",
+      "name": "CHEM 3",
+      "description": "Chemical Ingredient C",
+      "category": "laboratory",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "slider", "label": "Fill Level", "min": 0, "max": 100, "step": 1, "controllable": true},
+        {"key": "purity", "type": "gauge", "label": "Purity", "min": 0, "max": 100, "units": "%", "controllable": false},
+        {"key": "output", "type": "slider", "label": "Output Level", "min": 0, "max": 100, "step": 1, "controllable": true}
+      ],
+      "visualization": {
+        "type": "chemical",
+        "width": 80,
+        "height": 80,
+        "color": "#2ecc71"
+      },
+      "position": {
+        "x": 650,
+        "y": 50,
+        "width": 250,
+        "height": 300
+      },
+      "ui_props": {
+        "id": "3",
+        "fillLevel": 45,
+        "purity": 85,
+        "color": "#2ecc71"
+      }
+    },
+    {
+      "id": "mixer",
+      "type": "mixer",
+      "name": "MIXER",
+      "description": "Chemical Mixing System",
+      "category": "laboratory",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "max_throughput", "type": "slider", "label": "Max Throughput", "min": 50, "max": 300, "step": 10, "controllable": true},
+        {"key": "mixture_quality", "type": "gauge", "label": "Mixture Quality", "min": 0, "max": 100, "units": "%", "controllable": false}
+      ],
+      "visualization": {
+        "type": "mixer",
+        "width": 120,
+        "height": 100
+      },
+      "position": {
+        "x": 950,
+        "y": 50,
+        "width": 300,
+        "height": 300
+      },
+      "ui_props": {
+        "chem1Amount": 50,
+        "chem2Amount": 50,
+        "chem3Amount": 50,
+        "maxThroughput": 200,
+        "mixtureQuality": 0
+      }
+    },
+  "connections": [
+    {"from": "chemical1", "to": "mixer", "type": "power"},
+    {"from": "chemical2", "to": "mixer", "type": "power"},
+    {"from": "chemical3", "to": "mixer", "type": "power"}
+  ]
+}

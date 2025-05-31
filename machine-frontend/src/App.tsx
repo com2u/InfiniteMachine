@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import ControlPanel from './components/ControlPanel';
+import LaborPage from './components/LaborPage';
 import './App.css';
 
 // Define the type for our system data
@@ -221,10 +223,15 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  return (
+  const MainPage = () => (
     <div className="app">
       <div className="app-background"></div>
       <div className="app-container">
+        <div className="navigation-header">
+          <Link to="/labor" className="nav-button">
+            🧪 Laboratory System
+          </Link>
+        </div>
         {error && (
           <div className="error-message">
             Error connecting to backend: {error}
@@ -237,6 +244,15 @@ function App() {
         />
       </div>
     </div>
+  );
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainPage />} />
+        <Route path="/labor" element={<LaborPage />} />
+      </Routes>
+    </Router>
   );
 }
 

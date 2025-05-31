@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card } from 'antd';
 
 interface PlotterProps {
   value: number;

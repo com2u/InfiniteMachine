@@ -1,62 +1,135 @@
 /* Generator-specific styles */
 .generator-display {
-  /* Specific styles for generator display that complement the machine-component base */
+  position: relative;
+  min-height: 500px;
 }
 
-.generator-icon-container {
-  position: relative;
-  width: 150px;
-  height: 150px;
+/* Generator status panel */
+.generator-status-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  border: 1px solid #444;
+}
+
+.status-label {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.status-value {
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.status-value.active {
+  color: #4caf50;
+  text-shadow: 0 0 5px rgba(76, 175, 80, 0.7);
+}
+
+.status-value.warning {
+  color: #ff9800;
+  text-shadow: 0 0 5px rgba(255, 152, 0, 0.7);
+}
+
+.status-value.critical {
+  color: #f44336;
+  text-shadow: 0 0 5px rgba(244, 67, 54, 0.7);
+}
+
+.status-value.inactive {
+  color: #777;
+}
+
+/* Generator container */
+.generator-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin: 20px 0;
+  position: relative;
   z-index: 2;
 }
 
-.generator-icon {
-  position: relative;
+.generator-housing {
   width: 100%;
-  height: 100%;
+  height: 20%;
   background-color: #222;
-  border: 3px solid #666;
   border-radius: 50%;
-  overflow: hidden;
+  border: 8px solid #444;
   display: flex;
-  align-items: center;
   justify-content: center;
-  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7), 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-.generator-icon-inner {
-  width: 70%;
-  height: 70%;
-  background-color: #444;
-  border-radius: 50%;
+  align-items: center;
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  animation: rotate 8s linear infinite;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-.generator-icon-inner::before {
+.generator-housing::before {
   content: '';
   position: absolute;
+  width: 90%;
+  height: 90%;
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.generator-rotor {
   width: 80%;
   height: 80%;
-  border-radius: 50%;
-  border: 4px dashed #666;
+  position: relative;
+  animation: rotate 5s linear infinite;
+  animation-play-state: paused;
 }
 
-.generator-icon-inner::after {
-  content: '';
+.rotor-blade {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  top: 50%;
+  left: 50%;
+  width: 90%; /* Increased width */
+  height: 40px; /* Increased height */
+  background-color: #666;
+  transform-origin: 0 0;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.blade-1 {
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.blade-2 {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.blade-3 {
+  transform: translate(-50%, -50%) rotate(180deg);
+}
+
+.blade-4 {
+  transform: translate(-50%, -50%) rotate(270deg);
+}
+
+.rotor-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50px; /* Increased width */
+  height: 50px; /* Increased height */
   background-color: #888;
   border-radius: 50%;
-  border: 2px solid #555;
-  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%);
+  border: 3px solid #555;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 5px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes rotate {
@@ -68,100 +141,211 @@
   }
 }
 
-.generator-icon-blade {
-  position: absolute;
-  width: 40%;
-  height: 8px;
-  background-color: #888;
-  border-radius: 4px;
-  transform-origin: center;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-}
-
-.generator-icon-blade:nth-child(1) {
-  transform: rotate(0deg);
-}
-
-.generator-icon-blade:nth-child(2) {
-  transform: rotate(60deg);
-}
-
-.generator-icon-blade:nth-child(3) {
-  transform: rotate(120deg);
-}
-
-/* Power level indicator */
-.power-level-bar {
+/* Temperature gauge */
+.temperature-gauge-container {
   width: 100%;
-  height: 20px;
-  background-color: #222;
-  border-radius: 10px;
-  margin: 15px 0;
-  overflow: hidden;
-  border: 2px solid #555;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
   position: relative;
   z-index: 2;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
 }
 
-.power-level-fill {
-  height: 100%;
-  background: linear-gradient(to right, #4caf50, #8bc34a);
-  border-radius: 8px 0 0 8px;
-  transition: width 0.3s ease;
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+.temperature-gauge {
+  width: 160px;
+  height: 90px;
+  position: relative;
+  margin-bottom: 15px;
 }
 
-.power-level-fill.warning {
-  background: linear-gradient(to right, #ff9800, #ffb74d);
-  box-shadow: 0 0 10px rgba(255, 152, 0, 0.3);
-}
-
-.power-level-fill.critical {
-  background: linear-gradient(to right, #f44336, #e57373);
-  box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
-  animation: pulse-generator 1s infinite;
-}
-
-.power-level-fill.inactive {
-  background: #555;
-  box-shadow: none;
-}
-
-@keyframes pulse-generator {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-.power-level-ticks {
+.gauge-background {
   position: absolute;
-  top: 0;
+  width: 160px;
+  height: 90px;
+  background-color: #222;
+  border-radius: 80px 80px 0 0;
+  border: 3px solid #444;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7), 0 0 10px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.gauge-scale {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.gauge-marker {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform-origin: center bottom;
+}
+
+.marker-line {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 2px;
+  height: 12px;
+  background-color: #aaa;
+  transform: translateX(-50%);
+}
+
+.marker-value {
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #aaa;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.gauge-segments {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.segment {
+  position: absolute;
+  bottom: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 5px;
-  pointer-events: none;
+  border-radius: 80px 80px 0 0;
+  clip-path: polygon(0 100%, 100% 100%, 100% 60%, 0 60%);
 }
 
-.power-level-tick {
-  width: 1px;
-  height: 50%;
-  background-color: rgba(255, 255, 255, 0.3);
+.segment.normal {
+  background: rgba(76, 175, 80, 0.5);
+  border-radius: 80px 80px 0 0;
+  clip-path: polygon(0% 100%,  50% 100%, 20% 0%);
+}
+
+.segment.warning {
+  background: rgba(255, 193, 7, 0.5);
+  border-radius: 80px 80px 0 0;
+  clip-path: polygon(50% 100%, 20% 0%, 80% 0%);
+}
+
+.segment.critical {
+  background: rgba(244, 67, 54, 0.5);
+  border-radius: 80px 80px 0 0;
+  clip-path: polygon(50% 100%,  80% 0%, 4000% 0%);
+}
+
+.gauge-needle {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+  transform: translateX(-50%);
+  transition: transform 0.5s ease;
+}
+
+.needle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  height: 65px;
+  background-color: #f44336;
+  transform-origin: 50% 100%;
+  box-shadow: 0 0 5px rgba(244, 67, 54, 0.7);
+}
+
+.needle-base {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background-color: #888;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  border: 2px solid #666;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5), 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+.temperature-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #222;
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: 2px solid #444;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+  margin-top: -15px; /* Further reduced distance between gauge and value display */
+}
+
+.temp-label {
+  font-size: 0.8rem;
+  color: #aaa;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.temp-value {
+  font-size: 1.8rem;
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(0, 150, 255, 0.5);
+}
+
+.temp-unit {
+  font-size: 1rem;
+  margin-left: 3px;
+  color: #aaa;
+}
+
+/* Generator slider container */
+.generator-slider-container {
+  width: 100%;
+  margin-top: 20px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  border: 1px solid #444;
+  display: block; /* Ensure the slider is visible */
+}
+
+/* Override some slider styles to fit in the generator component */
+.generator-slider-container .slider-control {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  min-height: auto;
+}
+
+.generator-slider-container .component-title {
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #444;
+  padding-bottom: 5px;
+}
+
+.generator-slider-container .slider-container {
   margin-top: 5px;
 }
 
-.power-level-tick.major {
-  height: 80%;
-  width: 2px;
-  background-color: rgba(255, 255, 255, 0.5);
-  margin-top: 2px;
+.generator-slider-container .slider-track {
+  height: 10px;
+}
+
+.generator-slider-container .slider-handle {
+  width: 20px;
+  height: 20px;
+}
+
+.generator-slider-container .slider-value-display {
+  font-size: 1.2rem;
+  margin: 10px 0;
 }

@@ -18,6 +18,7 @@ export interface Visualization {
   description?: string;
   source_key?: string;
   label?: string;
+  color?: string;
   thresholds?: Array<{
     max?: number;
     label: string;
@@ -37,6 +38,15 @@ export interface Component {
   visualization: Visualization;
   layout?: Layout;
   category?: string;
+  position?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  ui_props?: {
+    [key: string]: any;
+  };
 }
 
 export interface Connection {
@@ -67,5 +77,5 @@ export interface MachineStructure {
 }
 
 export interface MachineVariables {
-  [key: string]: number | boolean;
+  [key: string]: number | boolean | string;
 }

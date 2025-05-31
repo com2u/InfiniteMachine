@@ -1,282 +1,28 @@
 import time
 import threading
 import random
+import json
+import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from typing import Dict, List, Any
 
 class MachineSimulator:
     def __init__(self):
-        # Define the machine structure
-        self.machine_structure = {
-            "components": [
-                {
-                    "id": "chemical1",
-                    "type": "chemical",
-                    "name": "CHEM 1",
-                    "description": "Chemical Ingredient A",
-                    "category": "laboratory",
-                    "properties": [
-                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
-                        {"key": "value", "type": "slider", "label": "Fill Level", "min": 0, "max": 100, "step": 1, "controllable": True},
-                        {"key": "purity", "type": "gauge", "label": "Purity", "min": 0, "max": 100, "units": "%", "controllable": False},
-                        {"key": "output", "type": "slider", "label": "Output Level", "min": 0, "max": 100, "step": 1, "controllable": True}
-                    ],
-                    "visualization": {
-                        "type": "chemical",
-                        "width": 80,
-                        "height": 80,
-                        "color": "#3498db"
-                    }
-                },
-                {
-                    "id": "chemical2",
-                    "type": "chemical",
-                    "name": "CHEM 2",
-                    "description": "Chemical Ingredient B",
-                    "category": "laboratory",
-                    "properties": [
-                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
-                        {"key": "value", "type": "slider", "label": "Fill Level", "min": 0, "max": 100, "step": 1, "controllable": True},
-                        {"key": "purity", "type": "gauge", "label": "Purity", "min": 0, "max": 100, "units": "%", "controllable": False},
-                        {"key": "output", "type": "slider", "label": "Output Level", "min": 0, "max": 100, "step": 1, "controllable": True}
-                    ],
-                    "visualization": {
-                        "type": "chemical",
-                        "width": 80,
-                        "height": 80,
-                        "color": "#e74c3c"
-                    }
-                },
-                {
-                    "id": "chemical3",
-                    "type": "chemical",
-                    "name": "CHEM 3",
-                    "description": "Chemical Ingredient C",
-                    "category": "laboratory",
-                    "properties": [
-                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
-                        {"key": "value", "type": "slider", "label": "Fill Level", "min": 0, "max": 100, "step": 1, "controllable": True},
-                        {"key": "purity", "type": "gauge", "label": "Purity", "min": 0, "max": 100, "units": "%", "controllable": False},
-                        {"key": "output", "type": "slider", "label": "Output Level", "min": 0, "max": 100, "step": 1, "controllable": True}
-                    ],
-                    "visualization": {
-                        "type": "chemical",
-                        "width": 80,
-                        "height": 80,
-                        "color": "#2ecc71"
-                    }
-                },
-                {
-                    "id": "mixer",
-                    "type": "mixer",
-                    "name": "MIXER",
-                    "description": "Chemical Mixing System",
-                    "category": "laboratory",
-                    "properties": [
-                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
-                        {"key": "max_throughput", "type": "slider", "label": "Max Throughput", "min": 50, "max": 300, "step": 10, "controllable": True},
-                        {"key": "mixture_quality", "type": "gauge", "label": "Mixture Quality", "min": 0, "max": 100, "units": "%", "controllable": False}
-                    ],
-                    "visualization": {
-                        "type": "mixer",
-                        "width": 120,
-                        "height": 100
-                    }
-                },
-                {
-                    "id": "generator1",
-                    "type": "generator",
-                    "name": "GEN 1",
-                    "description": "Power Generator Unit",
-                    "category": "generator",
-                    "properties": [
-                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
-                        {"key": "value", "type": "slider", "label": "Power Output", "min": 0, "max": 10, "step": 1, "controllable": True},
-                        {"key": "temp", "type": "gauge", "label": "Temp.", "min": 0, "max": 150, "units": "°C", "controllable": False}
-                    ],
-                    "visualization": {
-                        "type": "generator",
-                        "width": 80,
-                        "height": 80
-                    }
-                },
-                {
-                    "id": "generator2",
-                    "type": "generator",
-                    "name": "GEN 2",
-                    "description": "Power Generator Unit",
-                    "category": "generator",
-                    "properties": [
-                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
-                        {"key": "value", "type": "slider", "label": "Power Output", "min": 0, "max": 10, "step": 1, "controllable": True},
-                        {"key": "temp", "type": "gauge", "label": "Temp.", "min": 0, "max": 150, "units": "°C", "controllable": False}
-                    ],
-                    "visualization": {
-                        "type": "generator",
-                        "width": 80,
-                        "height": 80
-                    }
-                },
-                {
-                    "id": "generator3",
-                    "type": "generator",
-                    "name": "GEN 3",
-                    "description": "Power Generator Unit",
-                    "category": "generator",
-                    "properties": [
-                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
-                        {"key": "value", "type": "slider", "label": "Power Output", "min": 0, "max": 10, "step": 1, "controllable": True},
-                        {"key": "temp", "type": "gauge", "label": "Temp.", "min": 0, "max": 150, "units": "°C", "controllable": False}
-                    ],
-                    "visualization": {
-                        "type": "generator",
-                        "width": 80,
-                        "height": 80
-                    }
-                },
-                {
-                    "id": "akku1",
-                    "type": "battery",
-                    "name": "AKKU 1",
-                    "description": "Energy Storage Unit",
-                    "category": "battery",
-                    "properties": [
-                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
-                        {"key": "value", "type": "capacity", "label": "Charge Level", "max_key": "capacity", "controllable": False},
-                        {"key": "capacity", "type": "number", "label": "Capacity", "controllable": False}
-                    ],
-                    "visualization": {
-                        "type": "battery",
-                        "width": 80,
-                        "height": 80
-                    }
-                },
-                {
-                    "id": "akku2",
-                    "type": "battery",
-                    "name": "AKKU 2",
-                    "description": "Energy Storage Unit",
-                    "category": "battery",
-                    "properties": [
-                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
-                        {"key": "value", "type": "capacity", "label": "Charge Level", "max_key": "capacity", "controllable": False},
-                        {"key": "capacity", "type": "number", "label": "Capacity", "controllable": False}
-                    ],
-                    "visualization": {
-                        "type": "battery",
-                        "width": 80,
-                        "height": 80
-                    }
-                },
-                {
-                    "id": "akku3",
-                    "type": "battery",
-                    "name": "AKKU 3",
-                    "description": "Energy Storage Unit",
-                    "category": "battery",
-                    "properties": [
-                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
-                        {"key": "value", "type": "capacity", "label": "Charge Level", "max_key": "capacity", "controllable": False},
-                        {"key": "capacity", "type": "number", "label": "Capacity", "controllable": False}
-                    ],
-                    "visualization": {
-                        "type": "battery",
-                        "width": 80,
-                        "height": 80
-                    }
-                },
-                {
-                    "id": "aggregator",
-                    "type": "aggregator",
-                    "name": "AGGREGATOR",
-                    "description": "Energy Distribution System",
-                    "category": "distribution",
-                    "properties": [
-                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
-                        {"key": "value", "type": "display", "label": "Total Energy Available", "units": "units", "controllable": False}
-                    ],
-                    "visualization": {
-                        "type": "text",
-                        "description": "Combined from all active AKKUs"
-                    }
-                },
-                {
-                    "id": "producer",
-                    "type": "producer",
-                    "name": "PRODUCER",
-                    "description": "Manufacturing System",
-                    "category": "consumer",
-                    "properties": [
-                        {"key": "active", "type": "boolean", "label": "Active", "controllable": True},
-                        {"key": "consumption", "type": "slider", "label": "Energy Consumption", "min": 1, "max": 10, "step": 1, "controllable": True},
-                        {"key": "output", "type": "segment", "label": "Production Status", "digits": 1, "controllable": False}
-                    ],
-                    "visualization": {
-                        "type": "text",
-                        "description": "Requires energy units per cycle"
-                    }
-                },
-                {
-                    "id": "productCounter",
-                    "type": "counter",
-                    "name": "PRODUCTS",
-                    "description": "Total Products Created",
-                    "category": "misc",
-                    "properties": [
-                        {"key": "value", "type": "segment", "label": "Total Products", "digits": 5, "controllable": False}
-                    ],
-                    "visualization": {
-                        "type": "plotter",
-                        "source_key": "producer.output",
-                        "label": "Production Output Over Time",
-                        "width": 280,
-                        "height": 120
-                    },
-                    "layout": {
-                        "colspan": 2
-                    }
-                },
-                {
-                    "id": "room",
-                    "type": "environment",
-                    "name": "ROOM TEMP",
-                    "description": "Facility Temperature",
-                    "category": "misc",
-                    "properties": [
-                        {"key": "temp", "type": "gauge", "label": "Current", "min": 0, "max": 150, "units": "°C", "controllable": False}
-                    ],
-                    "visualization": {
-                        "type": "status",
-                        "thresholds": [
-                            {"max": 50, "label": "Normal"},
-                            {"max": 80, "label": "Warning"},
-                            {"label": "Critical"}
-                        ]
-                    }
-                }
-            ],
-            "layout": {
-                "grid": {
-                    "columns": {
-                        "sm": 3,
-                        "md": 4,
-                        "lg": 5,
-                        "xl": 6
-                    }
-                }
-            },
-            "connections": [
-                {"from": "generator1", "to": "akku1", "type": "power"},
-                {"from": "generator2", "to": "akku2", "type": "power"},
-                {"from": "generator3", "to": "akku3", "type": "power"},
-                {"from": "akku1", "to": "aggregator", "type": "power"},
-                {"from": "akku2", "to": "aggregator", "type": "power"},
-                {"from": "akku3", "to": "aggregator", "type": "power"},
-                {"from": "aggregator", "to": "producer", "type": "power"},
-                {"from": "producer", "to": "productCounter", "type": "data"}
-            ]
-        }
+        # Load the machine structure from JSON file
+        try:
+            json_file_path = os.path.join(os.path.dirname(__file__), 'machine1.json')
+            with open(json_file_path, 'r') as f:
+                self.machine_structure = json.load(f)
+            print(f"Successfully loaded machine structure from {json_file_path}")
+        except Exception as e:
+            print(f"Error loading machine structure from JSON: {e}")
+            # Fallback to empty structure
+            self.machine_structure = {
+                "components": [],
+                "layout": {"grid": {"columns": {"sm": 3, "md": 4, "lg": 5, "xl": 6}}},
+                "connections": []
+            }
         
         # Initialize the machine state variables
         self.variables = {
@@ -326,7 +72,23 @@ class MachineSimulator:
             "producer.output": 0,
             "producer.active": True,
             "productCounter.value": 0,
-            "room.temp": 20.0
+            "room.temp": 20.0,
+            
+            # Gauge components
+            "pressure-gauge.value": 75,
+            "pressure-gauge.active": True,
+            "temperature-gauge.value": 65,
+            "temperature-gauge.active": True,
+            "flow-gauge.value": 42,
+            "flow-gauge.active": True,
+            
+            # Slider components
+            "power-slider.value": 65,
+            "power-slider.active": True,
+            "flow-slider.value": 50,
+            "flow-slider.active": True,
+            "pressure-slider.value": 70,
+            "pressure-slider.active": True
         }
         self.cycle_count = 0
         self.running = False

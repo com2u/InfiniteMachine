@@ -1,0 +1,23 @@
+.led-display {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  box-shadow: 0 0 10px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.led-display.active {
+  background-color: #10b981;
+  border: 2px solid #10b981;
+  box-shadow: 0 0 10px 2px rgba(74, 222, 128, 0.8);
+}
+
+.led-display.inactive {
+  background-color: #ef4444;
+  border: 2px solid #ef4444;
+  box-shadow: 0 0 10px 2px rgba(239, 68, 68, 0.7);
+}
+
+.led-display:hover {
+  transform: scale(1.1);
+}

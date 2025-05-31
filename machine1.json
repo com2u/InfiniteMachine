@@ -1,0 +1,484 @@
+{
+  "components": [
+    {
+      "id": "system",
+      "type": "system",
+      "name": "SYSTEM",
+      "description": "System Status Indicator",
+      "category": "system",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "status", "type": "text", "label": "Status", "controllable": false}
+      ],
+      "visualization": {
+        "type": "status",
+        "thresholds": [
+          {"max": 80, "label": "OPERATIONAL"},
+          {"max": 90, "label": "WARNING"},
+          {"label": "CRITICAL"}
+        ]
+      },
+      "position": {
+        "x": 50,
+        "y": 2400,
+        "width": 250,
+        "height": 300
+      }
+    },
+    {
+      "id": "generator1",
+      "type": "generator",
+      "name": "GEN 1",
+      "description": "Power Generator Unit",
+      "category": "generator",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "slider", "label": "Power Output", "min": 0, "max": 10, "step": 1, "controllable": true},
+        {"key": "temp", "type": "gauge", "label": "Temp.", "min": 0, "max": 150, "units": "°C", "controllable": false}
+      ],
+      "visualization": {
+        "type": "generator",
+        "width": 80,
+        "height": 80
+      },
+      "position": {
+        "x": 50,
+        "y": 50,
+        "width": 250,
+        "height": 780
+      },
+      "ui_props": {
+        "id": "1",
+        "powerLevel": 75
+      }
+    },
+    {
+      "id": "generator2",
+      "type": "generator",
+      "name": "GEN 2",
+      "description": "Power Generator Unit",
+      "category": "generator",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "slider", "label": "Power Output", "min": 0, "max": 10, "step": 1, "controllable": true},
+        {"key": "temp", "type": "gauge", "label": "Temp.", "min": 0, "max": 150, "units": "°C", "controllable": false}
+      ],
+      "visualization": {
+        "type": "generator",
+        "width": 80,
+        "height": 80
+      },
+      "position": {
+        "x": 350,
+        "y": 50,
+        "width": 250,
+        "height": 780
+      },
+      "ui_props": {
+        "id": "2",
+        "powerLevel": 65
+      }
+    },
+    {
+      "id": "generator3",
+      "type": "generator",
+      "name": "GEN 3",
+      "description": "Power Generator Unit",
+      "category": "generator",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "slider", "label": "Power Output", "min": 0, "max": 10, "step": 1, "controllable": true},
+        {"key": "temp", "type": "gauge", "label": "Temp.", "min": 0, "max": 150, "units": "°C", "controllable": false}
+      ],
+      "visualization": {
+        "type": "generator",
+        "width": 80,
+        "height": 80
+      },
+      "position": {
+        "x": 650,
+        "y": 50,
+        "width": 250,
+        "height": 780
+      },
+      "ui_props": {
+        "id": "3",
+        "powerLevel": 0
+      }
+    },
+    {
+      "id": "akku1",
+      "type": "battery",
+      "name": "AKKU 1",
+      "description": "Energy Storage Unit",
+      "category": "battery",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "capacity", "label": "Charge Level", "max_key": "capacity", "controllable": false},
+        {"key": "capacity", "type": "number", "label": "Capacity", "controllable": false}
+      ],
+      "visualization": {
+        "type": "battery",
+        "width": 80,
+        "height": 80
+      },
+      "position": {
+        "x": 50,
+        "y": 880,
+        "width": 250,
+        "height": 380
+      },
+      "ui_props": {
+        "id": "1",
+        "powerLevel": 87
+      }
+    },
+    {
+      "id": "akku2",
+      "type": "battery",
+      "name": "AKKU 2",
+      "description": "Energy Storage Unit",
+      "category": "battery",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "capacity", "label": "Charge Level", "max_key": "capacity", "controllable": false},
+        {"key": "capacity", "type": "number", "label": "Capacity", "controllable": false}
+      ],
+      "visualization": {
+        "type": "battery",
+        "width": 80,
+        "height": 80
+      },
+      "position": {
+        "x": 350,
+        "y": 880,
+        "width": 250,
+        "height": 380
+      },
+      "ui_props": {
+        "id": "2",
+        "powerLevel": 65
+      }
+    },
+    {
+      "id": "akku3",
+      "type": "battery",
+      "name": "AKKU 3",
+      "description": "Energy Storage Unit",
+      "category": "battery",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "capacity", "label": "Charge Level", "max_key": "capacity", "controllable": false},
+        {"key": "capacity", "type": "number", "label": "Capacity", "controllable": false}
+      ],
+      "visualization": {
+        "type": "battery",
+        "width": 80,
+        "height": 80
+      },
+      "position": {
+        "x": 650,
+        "y": 880,
+        "width": 250,
+        "height": 380
+      },
+      "ui_props": {
+        "id": "3",
+        "powerLevel": 30
+      }
+    },
+    {
+      "id": "aggregator",
+      "type": "aggregator",
+      "name": "AGGREGATOR",
+      "description": "Energy Distribution System",
+      "category": "distribution",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "display", "label": "Total Energy Available", "units": "units", "controllable": false}
+      ],
+      "visualization": {
+        "type": "text",
+        "description": "Combined from all active AKKUs"
+      },
+      "position": {
+        "x": 950,
+        "y": 2000,
+        "width": 250,
+        "height": 300
+      }
+    },
+    {
+      "id": "producer",
+      "type": "producer",
+      "name": "PRODUCER",
+      "description": "Manufacturing System",
+      "category": "consumer",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "consumption", "type": "slider", "label": "Energy Consumption", "min": 1, "max": 10, "step": 1, "controllable": true},
+        {"key": "output", "type": "segment", "label": "Production Status", "digits": 1, "controllable": false}
+      ],
+      "visualization": {
+        "type": "text",
+        "description": "Requires energy units per cycle"
+      },
+      "position": {
+        "x": 650,
+        "y": 2000,
+        "width": 250,
+        "height": 300
+      }
+    },
+    {
+      "id": "productCounter",
+      "type": "counter",
+      "name": "PRODUCTS",
+      "description": "Total Products Created",
+      "category": "misc",
+      "properties": [
+        {"key": "value", "type": "segment", "label": "Total Products", "digits": 5, "controllable": false}
+      ],
+      "visualization": {
+        "type": "plotter",
+        "source_key": "producer.output",
+        "label": "Production Output Over Time",
+        "width": 280,
+        "height": 120
+      },
+      "layout": {
+        "colspan": 2
+      },
+      "position": {
+        "x": 350,
+        "y": 2000,
+        "width": 250,
+        "height": 300
+      }
+    },
+    {
+      "id": "room",
+      "type": "environment",
+      "name": "ROOM TEMP",
+      "description": "Facility Temperature",
+      "category": "misc",
+      "properties": [
+        {"key": "temp", "type": "gauge", "label": "Current", "min": 0, "max": 150, "units": "°C", "controllable": false}
+      ],
+      "visualization": {
+        "type": "status",
+        "thresholds": [
+          {"max": 50, "label": "Normal"},
+          {"max": 80, "label": "Warning"},
+          {"label": "Critical"}
+        ]
+      },
+      "position": {
+        "x": 50,
+        "y": 2000,
+        "width": 250,
+        "height": 300
+      }
+    },
+    {
+      "id": "pressure-gauge",
+      "type": "gauge",
+      "name": "PRESSURE",
+      "description": "System Pressure",
+      "category": "gauge",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "gauge", "label": "Value", "min": 0, "max": 100, "units": "BAR", "controllable": false}
+      ],
+      "visualization": {
+        "type": "gauge",
+        "width": 80,
+        "height": 80
+      },
+      "position": {
+        "x": 50,
+        "y": 1310,
+        "width": 250,
+        "height": 300
+      },
+      "ui_props": {
+        "title": "PRESSURE",
+        "value": 75,
+        "min": 0,
+        "max": 100,
+        "unit": "BAR"
+      }
+    },
+    {
+      "id": "temperature-gauge",
+      "type": "gauge",
+      "name": "TEMPERATURE",
+      "description": "System Temperature",
+      "category": "gauge",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "gauge", "label": "Value", "min": 0, "max": 150, "units": "°C", "controllable": false}
+      ],
+      "visualization": {
+        "type": "gauge",
+        "width": 80,
+        "height": 80
+      },
+      "position": {
+        "x": 350,
+        "y": 1310,
+        "width": 250,
+        "height": 300
+      },
+      "ui_props": {
+        "title": "TEMPERATURE",
+        "value": 65,
+        "min": 0,
+        "max": 150,
+        "unit": "°C"
+      }
+    },
+    {
+      "id": "flow-gauge",
+      "type": "gauge",
+      "name": "FLOW RATE",
+      "description": "System Flow Rate",
+      "category": "gauge",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "gauge", "label": "Value", "min": 0, "max": 100, "units": "L/s", "controllable": false}
+      ],
+      "visualization": {
+        "type": "gauge",
+        "width": 80,
+        "height": 80
+      },
+      "position": {
+        "x": 650,
+        "y": 1310,
+        "width": 250,
+        "height": 300
+      },
+      "ui_props": {
+        "title": "FLOW RATE",
+        "value": 42,
+        "min": 0,
+        "max": 100,
+        "unit": "L/s"
+      }
+    },
+    {
+      "id": "power-slider",
+      "type": "slider",
+      "name": "POWER",
+      "description": "Power Control",
+      "category": "slider",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "slider", "label": "Value", "min": 0, "max": 100, "step": 5, "controllable": true}
+      ],
+      "visualization": {
+        "type": "slider",
+        "width": 80,
+        "height": 80
+      },
+      "position": {
+        "x": 50,
+        "y": 1660,
+        "width": 250,
+        "height": 300
+      },
+      "ui_props": {
+        "title": "POWER",
+        "value": 65,
+        "min": 0,
+        "max": 100,
+        "step": 5
+      }
+    },
+    {
+      "id": "flow-slider",
+      "type": "slider",
+      "name": "FLOW RATE",
+      "description": "Flow Rate Control",
+      "category": "slider",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "slider", "label": "Value", "min": 0, "max": 100, "step": 5, "controllable": true}
+      ],
+      "visualization": {
+        "type": "slider",
+        "width": 80,
+        "height": 80
+      },
+      "position": {
+        "x": 350,
+        "y": 1660,
+        "width": 250,
+        "height": 300
+      },
+      "ui_props": {
+        "title": "FLOW RATE",
+        "value": 50,
+        "min": 0,
+        "max": 100,
+        "step": 5
+      }
+    },
+    {
+      "id": "pressure-slider",
+      "type": "slider",
+      "name": "PRESSURE",
+      "description": "Pressure Control",
+      "category": "slider",
+      "properties": [
+        {"key": "active", "type": "boolean", "label": "Active", "controllable": true},
+        {"key": "value", "type": "slider", "label": "Value", "min": 0, "max": 100, "step": 5, "controllable": true}
+      ],
+      "visualization": {
+        "type": "slider",
+        "width": 80,
+        "height": 80
+      },
+      "position": {
+        "x": 650,
+        "y": 1660,
+        "width": 250,
+        "height": 300
+      },
+      "ui_props": {
+        "title": "PRESSURE",
+        "value": 70,
+        "min": 0,
+        "max": 100,
+        "step": 5
+      }
+    }
+  ],
+  "layout": {
+    "grid": {
+      "columns": {
+        "sm": 3,
+        "md": 4,
+        "lg": 5,
+        "xl": 6
+      }
+    }
+  },
+  "connections": [
+    {"from": "generator1", "to": "akku1", "type": "power"},
+    {"from": "generator2", "to": "akku2", "type": "power"},
+    {"from": "generator3", "to": "akku3", "type": "power"},
+    {"from": "akku1", "to": "aggregator", "type": "power"},
+    {"from": "akku2", "to": "aggregator", "type": "power"},
+    {"from": "akku3", "to": "aggregator", "type": "power"},
+    {"from": "aggregator", "to": "producer", "type": "power"},
+    {"from": "producer", "to": "productCounter", "type": "data"},
+    {"from": "akku1", "to": "pressure-gauge", "type": "data"},
+    {"from": "akku2", "to": "temperature-gauge", "type": "data"},
+    {"from": "akku3", "to": "flow-gauge", "type": "data"},
+    {"from": "pressure-gauge", "to": "power-slider", "type": "control"},
+    {"from": "temperature-gauge", "to": "flow-slider", "type": "control"},
+    {"from": "flow-gauge", "to": "pressure-slider", "type": "control"}
+  ]
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import './MachineComponent.css';
 import './MixerControl.css';
 import LedDisplay from './LedDisplay';
@@ -28,7 +28,6 @@ const MixerControl: React.FC<MixerControlProps> = ({
   chem2Amount,
   chem3Amount,
   maxThroughput = 100,
-  mixtureQuality = 0,
   onToggle,
   width,
   height,

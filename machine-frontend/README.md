@@ -1,54 +1,50 @@
-# React + TypeScript + Vite
+# Infinite Machine Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern React-based frontend for the Infinite Machine simulator.
 
-Currently, two official plugins are available:
+![Infinite Machine Screenshot](public/InfiniteMachine.jpg)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Overview
 
-## Expanding the ESLint configuration
+This frontend application provides a visual interface for the Infinite Machine simulator. It dynamically renders machine components based on configuration received from the backend.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Architecture
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- The components, layout, and functionality are derived from the backend configuration
+- The application communicates with the backend API to receive machine state and send control commands
+- Components are rendered based on their type and properties defined in the configuration
+
+## Features
+
+- Dynamic component rendering based on machine configuration
+- Real-time visualization of machine states
+- Interactive controls for machine components
+- LED indicators to activate/deactivate components
+- Responsive design for different screen sizes
+
+## Component Interaction
+
+- Each component can be controlled using the LED indicator in its top-right corner
+- Clicking on the LED toggles the component's active state
+- Some components have additional interactive elements like sliders and gauges
+- The application automatically updates the display based on the machine's current state
+
+## Development
+
+This project is built with:
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+Make sure the backend simulator is running to see the full functionality.

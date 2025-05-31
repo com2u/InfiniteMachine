@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import './GaugeDisplay.css';
 import './MachineComponent.css';
 import LedDisplay from './LedDisplay';
@@ -37,25 +37,9 @@ const GaugeDisplay: React.FC<GaugeDisplayProps> = ({
   // Use provided values or fallbacks
   const displayTitle = title || label || 'GAUGE';
   const displayMin = min || minValue || 0;
-  const displayMax = max || maxValue || 100;
+  const displayMax = max || maxValue || 150;
   const displayUnit = unit || units || '';
   
-  const [gaugeStatus, setGaugeStatus] = useState<'normal' | 'warning' | 'critical'>('normal');
-  
-  // Determine gauge status based on value
-  useEffect(() => {
-    const range = displayMax - displayMin;
-    const normalThreshold = displayMin + range * 0.6;
-    const warningThreshold = displayMin + range * 0.8;
-    
-    if (value >= warningThreshold) {
-      setGaugeStatus('critical');
-    } else if (value >= normalThreshold) {
-      setGaugeStatus('warning');
-    } else {
-      setGaugeStatus('normal');
-    }
-  }, [value, displayMin, displayMax]);
   
   // Calculate the rotation angle for the gauge needle
   const calculateNeedleRotation = () => {
@@ -67,7 +51,6 @@ const GaugeDisplay: React.FC<GaugeDisplayProps> = ({
 
   // Map gauge status to component status class
   // If isActive is false, always use 'inactive', otherwise use the gauge status
-  const statusClass = !isActive ? 'inactive' : (gaugeStatus === 'normal' ? 'active' : gaugeStatus);
 
   return (
     <div 
@@ -140,14 +123,14 @@ const GaugeDisplay: React.FC<GaugeDisplayProps> = ({
             })}
             
             {/* Gauge value labels */}
-            {[0, 2, 4, 6, 8].map((i) => {
-              const angle = i * 20; // 180 degrees divided into 9 segments
+            {[0, 1, 2, 3, 4, 5, 6].map((i) => {
+              const angle = i * 30; // 180 degrees divided into 6 segments
               const radians = (angle * Math.PI) / 180;
               const labelRadius = 95;
               
               const x = labelRadius * Math.cos(radians);
               const y = -labelRadius * Math.sin(radians);
-              const value = displayMin + (i / 8) * (displayMax - displayMin);
+              const value = i * 25; // 0, 25, 50, 75, 100, 125, 150
               
               return (
                 <text
@@ -159,7 +142,7 @@ const GaugeDisplay: React.FC<GaugeDisplayProps> = ({
                   fill="#aaa"
                   fontSize="10"
                 >
-                  {Math.round(value)}
+                  {value}
                 </text>
               );
             })}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './GeneratorDisplay.css';
 import './MachineComponent.css';
 import LedDisplay from './LedDisplay';
+import SliderControl from './SliderControl';
 
 interface GeneratorDisplayProps {
   isActive: boolean;
@@ -11,6 +12,7 @@ interface GeneratorDisplayProps {
   height?: number;
   onToggle?: () => void;
   onPowerChange?: (value: number) => void;
+  onAggregatorXChange?: (value: number) => void;
 }
 
 const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
@@ -21,10 +23,9 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
   height,
   onToggle,
   onPowerChange,
+  onAggregatorXChange,
 }) => {
-  const [rpm, setRpm] = useState(0);
   const [temperature, setTemperature] = useState(0);
-  const [load, setLoad] = useState(0);
   
   // Determine generator status and color class
   let statusText = 'OPERATIONAL';
@@ -41,41 +42,16 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
     statusClass = 'warning';
   }
   
-  // Simulate generator metrics based on power level and active state
+  // Simulate generator temperature based on power level and active state
   useEffect(() => {
     if (isActive) {
-      // RPM calculation (higher power level = higher RPM)
-      const calculatedRpm = 1000 + (powerLevel / 100) * 2000;
-      setRpm(Math.round(calculatedRpm));
-      
       // Temperature calculation (higher power level = higher temperature)
       const calculatedTemp = 40 + (powerLevel / 100) * 60;
       setTemperature(Math.round(calculatedTemp));
-      
-      // Load calculation (similar to power level but with some variation)
-      const calculatedLoad = Math.min(100, Math.max(0, powerLevel + (Math.random() * 20 - 10)));
-      setLoad(Math.round(calculatedLoad));
     } else {
-      setRpm(0);
       setTemperature(25); // Ambient temperature when inactive
-      setLoad(0);
     }
   }, [isActive, powerLevel]);
-  
-  // Generate power level ticks
-  const generatePowerLevelTicks = () => {
-    const ticks = [];
-    const tickCount = 10;
-    
-    for (let i = 0; i < tickCount; i++) {
-      const isMajor = i === 0 || i === tickCount - 1 || i % 5 === 0;
-      ticks.push(
-        <div key={i} className={`power-level-tick ${isMajor ? 'major' : ''}`}></div>
-      );
-    }
-    
-    return ticks;
-  };
   
   // Animation speed for generator blades based on power level
   const getAnimationDuration = () => {
@@ -85,15 +61,32 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
     return `${Math.max(1, duration)}s`;
   };
 
+  // Calculate needle rotation angle based on temperature (0-150 scale)
+  const getNeedleRotation = () => {
+    // Map temperature (0-150) to angle (-90 to +90 degrees)
+    // -90 degrees = left (0°C), 0 degrees = center (75°C), +90 degrees = right (150°C)
+    return -90 + (temperature / 150) * 180;
+  };
+
+  // Handle power level change from slider
+  const handlePowerChange = (newValue: number) => {
+    if (onPowerChange) {
+      onPowerChange(newValue);
+    }
+  };
+  
+  // Handle aggregator X value change from slider
+  const handleAggregatorXChange = (newValue: number) => {
+    if (onAggregatorXChange) {
+      onAggregatorXChange(newValue);
+    }
+  };
+
   return (
     <div 
       className="machine-component generator-display" 
       style={width && height ? { width, height } : undefined}
     >
-      <LedDisplay 
-        isActive={isActive}
-        onToggle={onToggle}
-      />
       <div className="component-screw-top-left"></div>
       <div className="component-screw-top-right"></div>
       <div className="component-screw-bottom-left"></div>
@@ -103,46 +96,13 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
       
       <h3 className="component-title">GENERATOR</h3>
       
-      <div className="generator-icon-container">
-        <div className="generator-icon">
-          <div 
-            className="generator-icon-inner"
-            style={{ 
-              animationDuration: getAnimationDuration(),
-              animationPlayState: isActive ? 'running' : 'paused'
-            }}
-          >
-            <div className="generator-icon-blade"></div>
-            <div className="generator-icon-blade"></div>
-            <div className="generator-icon-blade"></div>
-          </div>
-        </div>
-      </div>
+      <LedDisplay 
+        isActive={isActive}
+        onToggle={onToggle}
+        size={30}
+      />
       
-      <div 
-        className="power-level-bar"
-        onClick={(e) => {
-          if (onPowerChange && isActive) {
-            const bar = e.currentTarget;
-            const rect = bar.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const percentage = (clickX / rect.width) * 100;
-            const newPowerLevel = Math.max(0, Math.min(100, Math.round(percentage)));
-            onPowerChange(newPowerLevel);
-          }
-        }}
-        style={{ cursor: onPowerChange && isActive ? 'pointer' : 'default' }}
-      >
-        <div 
-          className={`power-level-fill ${statusClass}`} 
-          style={{ width: `${isActive ? powerLevel : 0}%` }}
-        ></div>
-        <div className="power-level-ticks">
-          {generatePowerLevelTicks()}
-        </div>
-      </div>
-      
-      <div className="component-status">
+      <div className="generator-status-panel">
         <div className="status-label">
           <span>STATUS:</span>
           <span className={`status-value ${statusClass}`}>{statusText}</span>
@@ -154,23 +114,93 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
         </div>
       </div>
       
-      <div className="component-metrics">
-        <div className="metric">
-          <div className="metric-label">RPM</div>
-          <div className="metric-value">{rpm}</div>
+      <div className="generator-container">
+        <div className="generator-housing">
+          <div 
+            className="generator-rotor"
+            style={{ 
+              animationDuration: getAnimationDuration(),
+              animationPlayState: isActive ? 'running' : 'paused'
+            }}
+          >
+            <div className="rotor-blade blade-1"></div>
+            <div className="rotor-blade blade-2"></div>
+            <div className="rotor-blade blade-3"></div>
+            <div className="rotor-blade blade-4"></div>
+            <div className="rotor-center"></div>
+          </div>
         </div>
-        <div className="metric">
-          <div className="metric-label">TEMP</div>
-          <div className="metric-value">{temperature}°C</div>
+      </div>
+      
+      <div className="temperature-gauge-container">
+        <div className="temperature-gauge">
+          <div className="gauge-background"></div>
+          
+            {/* Gauge scale markers */}
+          <div className="gauge-scale">
+            {[...Array(7)].map((_, i) => (
+              <div 
+                key={i} 
+                className="gauge-marker"
+                style={{ transform: `rotate(${-90 + (i * 30)}deg)` }}
+              >
+                <div className="marker-line"></div>
+                <div className="marker-value">{i * 25}</div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Gauge color segments */}
+          <div className="gauge-segments">
+            <div className="segment normal"></div>
+            <div className="segment warning"></div>
+            <div className="segment critical"></div>
+          </div>
+          
+          {/* Gauge needle */}
+          <div 
+            className="gauge-needle"
+            style={{ transform: `rotate(${getNeedleRotation()}deg)` }}
+          >
+            <div className="needle"></div>
+            <div className="needle-base"></div>
+          </div>
         </div>
-        <div className="metric">
-          <div className="metric-label">LOAD</div>
-          <div className="metric-value">{load}%</div>
+        
+        <div className="temperature-display">
+          <div className="temp-label">TEMPERATURE</div>
+          <div className="temp-value">{temperature}<span className="temp-unit">°C</span></div>
         </div>
       </div>
       
       <div className="component-description">
         UNIT {id} - Power Generation System
+      </div>
+      
+      <div className="generator-slider-container">
+        <SliderControl
+          title="POWER LEVEL"
+          min={0}
+          max={100}
+          value={powerLevel}
+          step={5}
+          onChange={handlePowerChange}
+          isActive={isActive}
+          disabled={!isActive}
+        />
+      </div>
+      
+      <div className="generator-slider-container">
+        <SliderControl
+          title="AGGREGATOR X"
+          min={0}
+          max={100}
+          value={50}
+          step={1}
+          onChange={handleAggregatorXChange}
+          isActive={isActive}
+          disabled={!isActive}
+        />
       </div>
     </div>
   );

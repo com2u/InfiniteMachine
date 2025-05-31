@@ -6,7 +6,6 @@ import LedDisplay from './LedDisplay';
 import SevenSegmentDisplay from './SevenSegmentDisplay';
 import SliderControl from './SliderControl';
 import Plotter from './Plotter';
-import LedFillLevelStrip from './LedFillLevelStrip';
 import CapacityMeter from './CapacityMeter';
 import type { Component, MachineVariables } from '../types/MachineTypes';
 
@@ -207,6 +206,23 @@ const ComponentRenderer: React.FC<ComponentRendererProps> = ({
           <div className="mt-3">
             <LedDisplay
               isActive={!!(machineState[`${id}.${visualization.source_key || 'temp'}`] as number > 0)}
+              onToggle={() => {
+                const key = `${id}.active`;
+                const currentValue = machineState[key];
+                if (typeof currentValue === 'boolean') {
+                  updateVariable(key, !currentValue);
+                }
+              }}
+            />
+          </div>
+        )}
+
+        {/* Add LED display for all components with active property */}
+        {properties.some(prop => prop.key === 'active' && prop.type === 'boolean') && (
+          <div className="mt-3 flex justify-between items-center">
+            <span className="text-gray-300">Status</span>
+            <LedDisplay
+              isActive={!!machineState[`${id}.active`]}
               onToggle={() => {
                 const key = `${id}.active`;
                 const currentValue = machineState[key];

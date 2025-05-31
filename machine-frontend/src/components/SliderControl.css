@@ -12,9 +12,9 @@
 
 .slider-track {
   position: relative;
-  height: 24px;
+  height: 28px;
   background-color: #222;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 2px solid #555;
   margin: 20px 0;
   overflow: hidden;
@@ -35,8 +35,8 @@
 .slider-handle {
   position: absolute;
   top: 50%;
-  width: 30px;
-  height: 40px;
+  width: 36px;
+  height: 46px;
   background-color: #ddd;
   border: 2px solid #888;
   border-radius: 5px;
@@ -117,7 +117,7 @@
 }
 
 .slider-value-display {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: bold;
   margin: 15px 0;
   position: relative;
