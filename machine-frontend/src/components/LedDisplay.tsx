@@ -26,4 +26,4 @@ const LedDisplay: React.FC<LedDisplayProps> = ({ isActive, onToggle, size = 24 }
   );
 };
 
-export default LedDisplay;
+export default React.memo(LedDisplay);

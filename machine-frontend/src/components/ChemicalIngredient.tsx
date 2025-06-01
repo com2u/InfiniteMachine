@@ -128,4 +128,4 @@ const ChemicalIngredient: React.FC<ChemicalIngredientProps> = ({
   );
 };
 
-export default ChemicalIngredient;
+export default React.memo(ChemicalIngredient);

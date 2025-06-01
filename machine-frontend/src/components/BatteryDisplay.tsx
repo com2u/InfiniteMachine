@@ -146,4 +146,4 @@ const BatteryDisplay: React.FC<BatteryDisplayProps> = ({
   );
 };
 
-export default BatteryDisplay;
+export default React.memo(BatteryDisplay);

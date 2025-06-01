@@ -91,11 +91,18 @@ function App() {
       }
       
       const data = await response.json();
-      setBackendData(data);
+      
+      // Only update if data has actually changed
+      setBackendData(prevData => {
+        if (!prevData || JSON.stringify(prevData) !== JSON.stringify(data)) {
+          return data;
+        }
+        return prevData;
+      });
       
       // Transform backend data to match SystemData interface
       const transformedData: SystemData = {
-        timestamp: new Date().toISOString(),
+        timestamp: systemData?.timestamp || new Date().toISOString(), // Keep existing timestamp to prevent unnecessary updates
         systemStatus: determineSystemStatus(data),
         components: {
           batteries: [
@@ -171,7 +178,13 @@ function App() {
         }
       };
       
-      setSystemData(transformedData);
+      // Only update systemData if it has actually changed
+      setSystemData(prevSystemData => {
+        if (!prevSystemData || JSON.stringify(prevSystemData) !== JSON.stringify(transformedData)) {
+          return transformedData;
+        }
+        return prevSystemData;
+      });
       setError(null);
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -217,8 +230,8 @@ function App() {
     // Initial fetch
     fetchBackendData();
     
-    // Set up interval for periodic updates
-    const interval = setInterval(fetchBackendData, 5000);
+    // Set up interval for frequent value updates (every 1 second)
+    const interval = setInterval(fetchBackendData, 1000);
     
     return () => clearInterval(interval);
   }, []);

@@ -26,8 +26,7 @@
   position: relative;
   z-index: 2;
   padding: 20px;
-  max-width: 1400px;
-  margin: 0 auto;
+  min-height: 100vh;
 }
 
 .labor-header {
@@ -103,15 +102,17 @@
 }
 
 .navigation {
-  text-align: center;
-  margin-top: 40px;
-  padding: 20px;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
 }
 
 .nav-link {
   display: inline-block;
   padding: 12px 24px;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.8);
   border: 2px solid #444;
   border-radius: 8px;
   color: #ffffff;
@@ -128,106 +129,29 @@
   color: #0096ff;
   text-shadow: 0 0 5px rgba(0, 150, 255, 0.5);
   box-shadow: 0 0 15px rgba(0, 150, 255, 0.3);
-  transform: translateY(-2px);
+  transform: translateX(-50%) translateY(-2px);
 }
 
-/* Fixed component positioning */
-.fixed-component {
-  position: absolute;
-  z-index: 10;
+/* Components grid container */
+.components-grid {
+  position: relative;
+  width: 100%;
+  min-height: 800px;
 }
 
-/* Connection lines between components */
-.connection-line {
-  position: absolute;
-  z-index: 5;
-  transition: all 0.3s ease;
+/* Component container styling */
+.component-container {
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid #444;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
+  overflow: hidden;
 }
 
-.connection-line.horizontal {
-  height: 3px;
-  border-radius: 2px;
-}
-
-.connection-line.vertical {
-  width: 3px;
-  border-radius: 2px;
-}
-
-.connection-line.active {
-  background: linear-gradient(90deg, #00ff88, #00ccff);
-  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-  animation: pulse-connection 2s infinite;
-}
-
-.connection-line.warning {
-  background: linear-gradient(90deg, #ffaa00, #ff6600);
-  box-shadow: 0 0 8px rgba(255, 170, 0, 0.4);
-}
-
-.connection-line.critical {
-  background: linear-gradient(90deg, #ff4444, #cc0000);
-  box-shadow: 0 0 8px rgba(255, 68, 68, 0.4);
-}
-
-.connection-line.inactive {
-  background: #444;
-  box-shadow: none;
-}
-
-/* Connection nodes */
-.connection-node {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  z-index: 15;
-  transform: translate(-50%, -50%);
-  transition: all 0.3s ease;
-}
-
-.connection-node.active {
-  background: #00ff88;
-  box-shadow: 0 0 15px rgba(0, 255, 136, 0.8);
-  animation: pulse-node 2s infinite;
-}
-
-.connection-node.warning {
-  background: #ffaa00;
-  box-shadow: 0 0 12px rgba(255, 170, 0, 0.6);
-}
-
-.connection-node.critical {
-  background: #ff4444;
-  box-shadow: 0 0 12px rgba(255, 68, 68, 0.6);
-}
-
-.connection-node.inactive {
-  background: #666;
-  box-shadow: none;
-}
-
-/* Animations */
-@keyframes pulse-connection {
-  0%, 100% {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scaleY(1.2);
-  }
-}
-
-@keyframes pulse-node {
-  0%, 100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.3);
-    opacity: 0.8;
-  }
+.component-container:hover {
+  border-color: #0096ff;
+  box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
 }
 
 /* Responsive Design */
@@ -239,26 +163,8 @@
   .labor-header h1 {
     font-size: 2rem;
   }
-}
-
-/* Component overrides for labor page */
-.labor-page .bg-gray-700 {
-  background-color: rgba(55, 65, 81, 0.8) !important;
-  border-bottom: 1px solid #444;
-}
-
-.labor-page .bg-gray-600 {
-  background-color: rgba(75, 85, 99, 0.6) !important;
-}
-
-.labor-page .text-gray-300 {
-  color: #d1d5db !important;
-}
-
-.labor-page .text-white {
-  color: #ffffff !important;
-}
-
-.labor-page .text-gray-400 {
-  color: #9ca3af !important;
+  
+  .components-grid {
+    min-height: 600px;
+  }
 }

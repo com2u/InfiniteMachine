@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import BatteryDisplay from './BatteryDisplay';
 import GeneratorDisplay from './GeneratorDisplay';
 import GaugeDisplay from './GaugeDisplay';
@@ -147,7 +147,7 @@ interface MachineStructureData {
   connections: MachineConnection[];
 }
 
-const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, onUpdateBackend }) => {
+const ControlPanel: React.FC<ControlPanelProps> = ({ backendData, onUpdateBackend }) => {
   const [systemStatus, setSystemStatus] = useState('OPERATIONAL');
   const [systemLoad, setSystemLoad] = useState(78);
   const [powerOutput, setPowerOutput] = useState(1.2);
@@ -230,84 +230,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
     fetchMachineStructure();
   }, []);
   
-  // Update component values from backend data
-  useEffect(() => {
-    if (backendData && components.length > 0) {
-      const updatedComponents = [...components];
-      
-      updatedComponents.forEach(component => {
-        // Update component props based on backend data
-        if (component.type === 'battery') {
-          component.props.isActive = backendData[`${component.id}.active`] || false;
-          component.props.powerLevel = calculatePowerLevel(
-            backendData[`${component.id}.value`] || 0,
-            backendData[`${component.id}.capacity`] || 100
-          );
-        }
-        else if (component.type === 'generator') {
-          component.props.isActive = backendData[`${component.id}.active`] || false;
-          component.props.powerLevel = calculateGeneratorPowerLevel(backendData[`${component.id}.value`] || 0);
-        }
-        else if (component.type === 'gauge') {
-          component.props.isActive = backendData[`${component.id}.active`] || false;
-          component.props.value = backendData[`${component.id}.value`] || 0;
-        }
-        else if (component.type === 'slider') {
-          component.props.isActive = backendData[`${component.id}.active`] || false;
-          component.props.value = backendData[`${component.id}.value`] || 0;
-        }
-        else if (component.type === 'chemical') {
-          component.props.isActive = backendData[`${component.id}.active`] || false;
-          component.props.fillLevel = backendData[`${component.id}.value`] || 0;
-          component.props.purity = backendData[`${component.id}.purity`] || 0;
-          component.props.outputLevel = backendData[`${component.id}.output`] || 0;
-        }
-        else if (component.type === 'mixer') {
-          component.props.isActive = backendData[`${component.id}.active`] || false;
-          component.props.chem1Amount = backendData[`chemical1.output`] || 0;
-          component.props.chem2Amount = backendData[`chemical2.output`] || 0;
-          component.props.chem3Amount = backendData[`chemical3.output`] || 0;
-          component.props.maxThroughput = backendData[`${component.id}.max_throughput`] || 0;
-          component.props.mixtureQuality = backendData[`${component.id}.mixture_quality`] || 0;
-        }
-      });
-      
-      setComponents(updatedComponents);
-      
-      // Update connection status based on component active state
-      const updatedConnections = [...connections];
-      updatedConnections.forEach(connection => {
-        const fromComponent = components.find(c => c.id === connection.from);
-        const toComponent = components.find(c => c.id === connection.to);
-        
-        if (fromComponent && toComponent) {
-          const fromIsActive = backendData[`${fromComponent.id}.active`] !== false;
-          const toIsActive = backendData[`${toComponent.id}.active`] !== false;
-          
-          if (fromIsActive && toIsActive) {
-            connection.status = 'active';
-          } else if (fromIsActive || toIsActive) {
-            connection.status = 'warning';
-          } else {
-            connection.status = 'inactive';
-          }
-        }
-      });
-      
-      setConnections(updatedConnections);
-    }
-  }, [backendData, components.length]);
+  // No more useEffect for updates - everything is calculated in render
   
-  // Helper function to calculate battery power level as percentage
-  const calculatePowerLevel = (value: number, capacity: number): number => {
-    if (!capacity) return 0;
-    return Math.round((value / capacity) * 100);
-  };
+
   
-  // Helper function to convert generator value (0-10) to percentage (0-100)
-  const calculateGeneratorPowerLevel = (value: number): number => {
-    return Math.round((value / 10) * 100);
-  };
+
   
   // Render connection lines between components
   const renderConnections = () => {
@@ -436,8 +363,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
     });
   };
   
-  // Handle chemical toggle
-  const handleChemicalToggle = (chemicalId: string) => {
+  // Memoized event handlers to prevent unnecessary re-renders
+  const handleChemicalToggle = useCallback((chemicalId: string) => {
     const backendKey = `chemical${chemicalId}.active`;
     const currentValue = backendData?.[backendKey];
     
@@ -445,7 +372,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
       // Toggle the value by sending the opposite of the current value
       onUpdateBackend(backendKey, !currentValue);
     }
-  };
+  }, [backendData, onUpdateBackend]);
   
   // Handle chemical fill level change
   const handleChemicalFillLevelChange = (chemicalId: string, value: number) => {
@@ -560,6 +487,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
               {...props} 
               width={width} 
               height={height}
+              temperature={backendData?.[`${id}.temp`] || 20}
               onToggle={() => handleGeneratorToggle(props.id)}
               onPowerChange={(value) => handleGeneratorPowerChange(props.id, value)}
               onAggregatorXChange={(value) => onUpdateBackend('aggregatorX.value', value)}
@@ -738,45 +666,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
     }
   };
   
-  // Update component values based on systemData if available
-  useEffect(() => {
-    if (systemData) {
-      // Update battery components
-      const updatedComponents = [...components];
-      
-      systemData.components.batteries.forEach(battery => {
-        const batteryComponent = updatedComponents.find(c => c.id === `battery${battery.id}`);
-        if (batteryComponent) {
-          batteryComponent.props.isActive = battery.status === 'active';
-          batteryComponent.props.powerLevel = battery.powerLevel;
-        }
-      });
-      
-      systemData.components.generators.forEach(generator => {
-        const generatorComponent = updatedComponents.find(c => c.id === `generator${generator.id}`);
-        if (generatorComponent) {
-          generatorComponent.props.isActive = generator.status === 'active';
-          generatorComponent.props.powerLevel = generator.powerLevel;
-        }
-      });
-      
-      // Update gauge components
-      const pressureGauge = updatedComponents.find(c => c.id === 'pressure-gauge');
-      if (pressureGauge) {
-        pressureGauge.props.value = systemData.components.sensors.pressure;
-      }
-      
-      const temperatureGauge = updatedComponents.find(c => c.id === 'temperature-gauge');
-      if (temperatureGauge) {
-        temperatureGauge.props.value = systemData.components.sensors.temperature;
-      }
-      
-      const flowGauge = updatedComponents.find(c => c.id === 'flow-gauge');
-      if (flowGauge) {
-        flowGauge.props.value = systemData.components.sensors.flowRate;
-      }
-    }
-  }, [systemData]);
+  // Components get values directly from backendData - no more systemData updates
   
   // Simulate changing system values
   useEffect(() => {
@@ -853,4 +743,4 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ systemData, backendData, on
   );
 };
 
-export default ControlPanel;
+export default React.memo(ControlPanel);

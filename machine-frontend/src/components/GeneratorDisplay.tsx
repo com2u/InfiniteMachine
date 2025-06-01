@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import './GeneratorDisplay.css';
 import './MachineComponent.css';
 import LedDisplay from './LedDisplay';
@@ -8,6 +8,7 @@ interface GeneratorDisplayProps {
   isActive: boolean;
   id?: string;
   powerLevel?: number;
+  temperature?: number;
   width?: number;
   height?: number;
   onToggle?: () => void;
@@ -19,13 +20,13 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
   isActive,
   id = "1",
   powerLevel = 65,
+  temperature = 20,
   width,
   height,
   onToggle,
   onPowerChange,
   onAggregatorXChange,
 }) => {
-  const [temperature, setTemperature] = useState(0);
   
   // Determine generator status and color class
   let statusText = 'OPERATIONAL';
@@ -42,16 +43,7 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
     statusClass = 'warning';
   }
   
-  // Simulate generator temperature based on power level and active state
-  useEffect(() => {
-    if (isActive) {
-      // Temperature calculation (higher power level = higher temperature)
-      const calculatedTemp = 40 + (powerLevel / 100) * 60;
-      setTemperature(Math.round(calculatedTemp));
-    } else {
-      setTemperature(25); // Ambient temperature when inactive
-    }
-  }, [isActive, powerLevel]);
+  // Temperature is now provided from backend via props
   
   // Animation speed for generator blades based on power level
   const getAnimationDuration = () => {
@@ -169,7 +161,7 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
         
         <div className="temperature-display">
           <div className="temp-label">TEMPERATURE</div>
-          <div className="temp-value">{temperature}<span className="temp-unit">°C</span></div>
+          <div className="temp-value">{temperature.toFixed(1)}<span className="temp-unit">°C</span></div>
         </div>
       </div>
       
@@ -206,4 +198,4 @@ const GeneratorDisplay: React.FC<GeneratorDisplayProps> = ({
   );
 };
 
-export default GeneratorDisplay;
+export default React.memo(GeneratorDisplay);
